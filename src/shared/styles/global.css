@@ -1,0 +1,45 @@
+/** Colors and variables **/
+:root {
+  --g-background-color: #fcfcfa;
+  --g-font-color: #121314;
+  --g-font-size: 15px;
+  --g-font-weight: 400;
+  --g-line-height: 20px;
+
+  --link-font-color: #1d6dff;
+  --link-font-color-hover: #1051c9;
+  --link-font-color-inactive: #1051c9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --g-background-color: #0d1117;
+    --g-font-color: rgba(228, 228, 232, 0.9);
+
+    --link-font-color: #367df7;
+    --link-font-color-hover: #6391ec;
+    --link-font-color-inactive: #abbdcc;
+  }
+}
+
+/** General styling **/
+html {}
+
+body {
+  background: var(--g-background-color);
+  color: var(--g-font-color);
+  font-family: 'Roboto', sans-serif;
+  font-size: var(--g-font-size);
+  font-weight: var(--g-font-weight);
+  line-height: var(--g-line-height);
+  min-width: 380px;
+}
+
+a {
+  color: var(--link-font-color);
+  font-weight: 700;
+  text-decoration: none;
+}
+a:hover {
+  color: var(--link-font-color-hover);
+}
