@@ -208,7 +208,7 @@ export default class EntryComponent extends LitElement {
                                     title="Show older PRs first"
                                     @click="${this.onSortClicked.bind(this, "age")}"
                                 >
-                                    Age
+                                    Lifetime
                                 </span> |
                                 <span
                                     class="pulls-sort-action ${(this._sortBy === "stale" ? "pulls-sort-action--active" : "")}"

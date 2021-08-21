@@ -1,22 +1,44 @@
 const fs = require('fs').promises;
 const path = require('path');
+const fetch = require('node-fetch');
 
-async function fetchPulls() {
+const teams = {};
+const pulls = [];
+let page_count = 1;
+
+const LINK_RE = /&page=([0-9]+)/g;
+
+async function fetchPulls(page) {
     try {
-        const json = await fs.readFile("pulls.raw.json", {encoding: "utf-8", flag: "r"});
-        return JSON.parse(json);
+        let page_text = page;
+        if (page_count > 1) {
+            page_text = `${page}/${page_count}`;
+        }
+        console.log(`    Requesting page ${page_text} of pull request data.`);
+        const res = await fetch(`https://api.github.com/repos/godotengine/godot/pulls?state=open&per_page=100&page=${page}`);
+        if (res.status !== 200) {
+            return [];
+        }
+
+        const links = res.headers.get("link").split(",");
+        links.forEach((link) => {
+           if (link.includes('rel="last"')) {
+               const matches = LINK_RE.exec(link);
+               if (matches && matches[1]) {
+                   page_count = Number(matches[1]);
+               }
+           }
+        });
+
+        return await res.json();
     } catch (err) {
-        console.error("Error fetching the pull requests: " + err);
-        return {};
+        console.error("Error fetching pull request data: " + err);
+        return [];
     }
 }
 
-async function processPulls() {
-    const pullsRaw = await fetchPulls();
-
-    let teams = {};
-    let pulls = [];
-
+function processPulls(pullsRaw) {
+    console.log("    Processing retrieved pull requests.");
     pullsRaw.forEach((item) => {
         // Compile basic information about a PR.
         let pr = {
@@ -59,15 +81,15 @@ async function processPulls() {
         // Add labels, if available.
         item.labels.forEach((labelItem) => {
             pr.labels.push({
-               "id": labelItem.id,
-               "name": labelItem.name,
-               "color": "#" + labelItem.color
+                "id": labelItem.id,
+                "name": labelItem.name,
+                "color": "#" + labelItem.color
             });
         });
         pr.labels.sort((a, b) => {
-           if (a.name > b.name) return 1;
-           if (a.name < b.name) return -1;
-           return 0;
+            if (a.name > b.name) return 1;
+            if (a.name < b.name) return -1;
+            return 0;
         });
 
         // Add teams, if available.
@@ -97,13 +119,32 @@ async function processPulls() {
 
         pulls.push(pr);
     });
+}
 
+async function main() {
+    console.log("[*] Building local pull request database.");
+
+    console.log("[*] Fetching pull request data from GitHub.");
+    // Pages are starting with 1 (but 0 returns the same results).
+    let page = 1;
+    while (page <= page_count) {
+        const pullsRaw = await fetchPulls(page);
+        processPulls(pullsRaw);
+        page++;
+    }
+
+    console.log("[*] Finalizing database.")
     const output = {
         "generated_at": Date.now(),
         "teams": teams,
         "pulls": pulls,
     };
-    fs.writeFile("out/data.json", JSON.stringify(output), { encoding: "utf-8" });
+    try {
+        console.log("[*] Storing database to file.")
+        await fs.writeFile("out/data.json", JSON.stringify(output), {encoding: "utf-8"});
+    } catch (err) {
+        console.error("Error saving database file: " + err);
+    }
 }
 
-processPulls();
+main();

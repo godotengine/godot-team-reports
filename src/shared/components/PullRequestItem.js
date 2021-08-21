@@ -185,7 +185,7 @@ export default class PullRequestItem extends LitElement {
     }
 
     @property({ type: Number }) id = -1;
-    @property({ type: String, reflect: true }) title = '';
+    @property({ type: String }) title = '';
     @property({ type: String, reflect: true }) url = '';
     @property({ type: String, reflect: true }) diff_url = '';
     @property({ type: String, reflect: true }) patch_url = '';
@@ -287,7 +287,10 @@ export default class PullRequestItem extends LitElement {
                 </div>
                 
                 <div class="pr-stats">
-                    <div class="pr-stat">
+                    <div
+                        class="pr-stat"
+                        title="Days since this PR was created"
+                    >
                         <span>lifetime: </span>
                         <span
                             class="pr-stat--temp${this.getStatTemp(created_days, 14)}"
@@ -295,7 +298,10 @@ export default class PullRequestItem extends LitElement {
                             ${greports.format.formatDays(created_days)}
                         </span>
                     </div>
-                    <div class="pr-stat">
+                    <div
+                        class="pr-stat"
+                        title="Days since last update to this PR was made"
+                    >
                         <span>stale for: </span>
                         <span
                             class="pr-stat--temp${this.getStatTemp(stale_days, 14)}"

@@ -12,7 +12,7 @@ const ReportsAPI = {
   },
 
   async getData() {
-    return await this.get("/data.json");
+    return await this.get("data.json");
   },
 };
 
