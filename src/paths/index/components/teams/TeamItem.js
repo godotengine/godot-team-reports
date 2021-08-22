@@ -1,7 +1,7 @@
 import { LitElement, html, css, customElement, property } from 'lit-element';
 
-@customElement('gr-team-tab')
-export default class TeamTab extends LitElement {
+@customElement('gr-team-item')
+export default class TeamItem extends LitElement {
     static get styles() {
         return css`
           /** Colors and variables **/
@@ -23,28 +23,29 @@ export default class TeamTab extends LitElement {
             max-width: 240px;
           }
           
-          :host .tab-container {
+          :host .team-item {
             border-left: 5px solid transparent;
             cursor: pointer;
             display: flex;
             flex-direction: row;
             padding: 2px 12px;
           }
-          :host .tab-container:hover {
+          :host .team-item:hover {
             background-color: var(--tab-hover-background-color);
           }
-          :host .tab-container--active {
+          :host .team-item--active {
             background-color: var(--tab-active-background-color);
             border-left: 5px solid var(--tab-active-border-color);
           }
 
-          :host .tab-icon {
+          :host .team-icon {
+            background-size: cover;
             display: inline-block;
             width: 16px;
             height: 16px;
           }
           
-          :host .tab-title {
+          :host .team-title {
             color: var(--g-font-color);
             font-size: 13px;
             padding-left: 12px;
@@ -59,19 +60,19 @@ export default class TeamTab extends LitElement {
     @property({ type: Boolean, reflect: true }) active = false;
 
     render(){
-        const classList = [ "tab-container" ];
+        const classList = [ "team-item" ];
         if (this.active) {
-            classList.push("tab-container--active");
+            classList.push("team-item--active");
         }
 
         return html`
             <div class="${classList.join(" ")}">
                 <div 
-                    class="tab-icon"
+                    class="team-icon"
                     style="background-image: url('${this.avatar}')"
                 ></div>
                 <span
-                    class="tab-title"
+                    class="team-title"
                 >
                     ${this.name}
                 </span>

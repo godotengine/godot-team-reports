@@ -266,7 +266,7 @@ export default class PullRequestItem extends LitElement {
                     
                     <div class="pr-timing">
                         <div class="pr-time">
-                            <span>created at: </span>
+                            <span>created: </span>
                             <span
                                 class="pr-time-value"
                                 title="${greports.format.formatTimestamp(this.created_at)}"
@@ -275,7 +275,7 @@ export default class PullRequestItem extends LitElement {
                             </span>
                         </div>
                         <div class="pr-time">
-                            <span>updated at: </span>
+                            <span>updated: </span>
                             <span
                                 class="pr-time-value"
                                 title="${greports.format.formatTimestamp(this.updated_at)}"

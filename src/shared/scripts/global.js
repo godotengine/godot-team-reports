@@ -53,9 +53,18 @@ const ReportsFormatter = {
   },
 };
 
+const ReportsUtils = {
+  createEvent(name, detail = {}) {
+    return  new CustomEvent(name, {
+      detail: detail
+    });
+  },
+};
+
 const ReportsSingleton = {
   api: ReportsAPI,
-  format: ReportsFormatter
+  format: ReportsFormatter,
+  util: ReportsUtils,
 };
 
 window.greports = ReportsSingleton;
