@@ -8,7 +8,7 @@
 
   --link-font-color: #1d6dff;
   --link-font-color-hover: #1051c9;
-  --link-font-color-inactive: #1051c9;
+  --link-font-color-inactive: #35496f;
 }
 
 @media (prefers-color-scheme: dark) {

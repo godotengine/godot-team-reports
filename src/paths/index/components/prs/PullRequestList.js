@@ -8,8 +8,8 @@ export default class PullRequestList extends LitElement {
         return css`
           /** Colors and variables **/
           :host {
-            --pulls-background-color: #191d23;
-            --pulls-toolbar-color: #222c3d;
+            --pulls-background-color: #e5edf8;
+            --pulls-toolbar-color: #9bbaed;
           }
           @media (prefers-color-scheme: dark) {
             :host {

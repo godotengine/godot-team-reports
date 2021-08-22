@@ -6,7 +6,7 @@ export default class IndexHeader extends LitElement {
         return css`
           /** Colors and variables **/
           :host {
-            --header-meta-color: #515c6c;
+            --header-meta-color: #98a5b8;
           }
           @media (prefers-color-scheme: dark) {
             :host {

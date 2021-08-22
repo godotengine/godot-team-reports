@@ -7,7 +7,7 @@ export default class TeamItem extends LitElement {
           /** Colors and variables **/
           :host {
             --tab-hover-background-color: rgba(0, 0, 0, 0.14);
-            --tab-active-background-color: #2c3c55;
+            --tab-active-background-color: #d6e6ff;
             --tab-active-border-color: #397adf;
           }
           @media (prefers-color-scheme: dark) {
@@ -29,6 +29,7 @@ export default class TeamItem extends LitElement {
             display: flex;
             flex-direction: row;
             padding: 2px 12px;
+            align-items: center;
           }
           :host .team-item:hover {
             background-color: var(--tab-hover-background-color);

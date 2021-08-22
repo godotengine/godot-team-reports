@@ -6,24 +6,24 @@ export default class PullRequestItem extends LitElement {
         return css`
           /** Colors and variables **/
           :host {
-            --pr-border-color: #0d1117;
-            --draft-font-color: #e0c537;
-            --draft-background-color: #1e313c;
-            --stats-background-color: #0f1316;
-            --meta-font-color: #929da0;
+            --pr-border-color: #fcfcfa;
+            --draft-font-color: #ffcc31;
+            --draft-background-color: #9db3c0;
+            --stats-background-color: #f9fafa;
+            --meta-font-color: #535c5f;
             
-            --review-team-color: #8491ab;
-            
+            --review-team-color: #6b7893;
+
             --stat-temp0-color: #000000;
-            --stat-temp1-color: #000000;
-            --stat-temp2-color: #000000;
-            --stat-temp3-color: #000000;
-            --stat-temp4-color: #000000;
-            --stat-temp5-color: #000000;
-            --stat-temp6-color: #000000;
-            --stat-temp7-color: #000000;
-            --stat-temp8-color: #000000;
-            --stat-temp9-color: #000000;
+            --stat-temp1-color: #383824;
+            --stat-temp2-color: #645b2c;
+            --stat-temp3-color: #a07b24;
+            --stat-temp4-color: #b06c15;
+            --stat-temp5-color: #bb5010;
+            --stat-temp6-color: #e33b07;
+            --stat-temp7-color: #e6240e;
+            --stat-temp8-color: #b31605;
+            --stat-temp9-color: #d3001c;
           }
           @media (prefers-color-scheme: dark) {
             :host {
@@ -148,18 +148,23 @@ export default class PullRequestItem extends LitElement {
           }
           :host .pr-stat--temp5 {
             color: var(--stat-temp5-color);
+            font-weight: 700;
           }
           :host .pr-stat--temp6 {
             color: var(--stat-temp6-color);
+            font-weight: 700;
           }
           :host .pr-stat--temp7 {
             color: var(--stat-temp7-color);
+            font-weight: 700;
           }
           :host .pr-stat--temp8 {
             color: var(--stat-temp8-color);
+            font-weight: 700;
           }
           :host .pr-stat--temp9 {
             color: var(--stat-temp9-color);
+            font-weight: 700;
           }
           
           :host .pr-review {
