@@ -49,7 +49,7 @@ const ReportsFormatter = {
   },
 
   formatDays(days) {
-    return days + " " + (days !== 0 ? "days" : "day")
+    return days + " " + (days !== 1 ? "days" : "day");
   },
 };
 

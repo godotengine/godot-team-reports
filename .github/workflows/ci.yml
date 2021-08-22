@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
   schedule:
-    # Every day at midnight (UTC).
+    # Every day every two hours starting at midnight (UTC).
     - cron: '0 0,2,4,6,8,10,12,14,16,18,20,22 * * *'
 
 jobs:
@@ -15,10 +15,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - name: Install Node.js 12.x
+    - name: Install Node.js 14.x
       uses: actions/setup-node@v2
       with:
-        node-version: 12.x
+        node-version: 14.x
         cache: 'npm'
 
     - name: Install dependencies
