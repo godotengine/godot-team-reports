@@ -1,0 +1,41 @@
+name: Continuous integration
+
+on:
+  push:
+    branches: [ master ]
+  schedule:
+    # Every day at midnight (UTC).
+    - cron: '0 0,2,4,6,8,10,12,14,16,18,20,22 * * *'
+
+jobs:
+  build:
+    name: Build and deploy to GitHub Pages
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install Node.js 12.x
+      uses: actions/setup-node@v2
+      with:
+        node-version: 12.x
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build the static content using npm
+      run: npm run build
+    
+    - name: Fetch pull request data
+      run: npm run compose
+      
+    - name: Deploy to GitHub Pages 🚀
+      uses: JamesIves/github-pages-deploy-action@releases/v3
+      with:
+        # The branch the action should deploy to.
+        BRANCH: gh-pages
+        # The folder the action should deploy.
+        FOLDER: out
+        # Don't keep the history.
+        SINGLE_COMMIT: true
