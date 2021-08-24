@@ -3,6 +3,7 @@ const path = require('path');
 const fetch = require('node-fetch');
 
 const teams = {};
+const authors = {};
 const pulls = [];
 let page_count = 1;
 
@@ -51,15 +52,9 @@ function processPulls(pullsRaw) {
             "title": item.title,
             "state": item.state,
             "is_draft": item.draft,
-            "authored_by": {
-                "id": item.user.id,
-                "user": item.user.login,
-                "avater": item.user.avatar_url,
-                "url": item.user.html_url,
-            },
+            "authored_by": null,
             "created_at": item.created_at,
             "updated_at": item.updated_at,
-            "body": item.body,
 
             "target_branch": item.base.ref,
 
@@ -68,6 +63,22 @@ function processPulls(pullsRaw) {
 
             "teams": [],
         };
+
+        // Compose and link author information.
+        const author = {
+            "id": item.user.id,
+            "user": item.user.login,
+            "avatar": item.user.avatar_url,
+            "url": item.user.html_url,
+            "pull_count": 0,
+        };
+        pr.authored_by = author.id;
+
+        // Store the author if they haven't been stored.
+        if (typeof authors[author.id] == "undefined") {
+            authors[author.id] = author;
+        }
+        authors[author.id].pull_count++;
 
         // Add the milestone, if available.
         if (item.milestone) {
@@ -94,13 +105,14 @@ function processPulls(pullsRaw) {
 
         // Add teams, if available.
         item.requested_teams.forEach((teamItem) => {
-            let team = {
+            const team = {
                 "id": teamItem.id,
                 "name": teamItem.name,
                 "avatar": `https://avatars.githubusercontent.com/t/${teamItem.id}?s=40&v=4`,
                 "slug": teamItem.slug,
                 "full_name": teamItem.name,
                 "full_slug": teamItem.slug,
+                "pull_count": 0,
             };
             // Include parent data into full name and slug.
             if (teamItem.parent) {
@@ -112,6 +124,7 @@ function processPulls(pullsRaw) {
             if (typeof teams[team.id] == "undefined") {
                 teams[team.id] = team;
             }
+            teams[team.id].pull_count++;
 
             // Reference the team.
             pr.teams.push(team.id);
@@ -137,6 +150,7 @@ async function main() {
     const output = {
         "generated_at": Date.now(),
         "teams": teams,
+        "authors": authors,
         "pulls": pulls,
     };
     try {

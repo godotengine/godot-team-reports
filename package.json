@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "build": "./node_modules/.bin/rollup -c",
-    "compose": "node ./compose.js"
+    "compose-db": "node ./compose-db.js"
   },
   "author": "Yuri Sizov <yuris@humnom.net>",
   "private": true,

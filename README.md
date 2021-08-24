@@ -20,7 +20,7 @@ should work just fine).
 1. Clone or download the project.
 2. From the project root run `npm install` or `yarn` to install dependencies.
 3. Run `npm run build` or `yarn run build` to build the pages.
-4. Run `npm run compose` or `yarn run compose` to fetch the data from GitHub.
+4. Run `npm run compose-db` or `yarn run compose-db` to fetch the data from GitHub.
 5. Serve the `out/` folder with your method of choice (e.g. using Python 3:
    `python -m http.server 8080 -d ./out`).
 

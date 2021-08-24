@@ -7,6 +7,11 @@ on:
     # Every day every two hours starting at midnight (UTC).
     - cron: '0 0,2,4,6,8,10,12,14,16,18,20,22 * * *'
 
+# Make sure jobs cannot overlap (e.g. one from push and one from schedule).
+concurrency:
+  group: pages-ci
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build and deploy to GitHub Pages
@@ -28,7 +33,7 @@ jobs:
       run: npm run build
     
     - name: Fetch pull request data
-      run: npm run compose
+      run: npm run compose-db
       
     - name: Deploy to GitHub Pages 🚀
       uses: JamesIves/github-pages-deploy-action@releases/v3
