@@ -118,12 +118,18 @@ export default class PullRequestList extends LitElement {
         super();
 
         this._sortBy = "age";
+        this._sortDirection = "desc";
         this._showDraft = false;
         this._filterMilestone = "";
     }
 
-    onSortClicked(sortOrder, event) {
-        this._sortBy = sortOrder;
+    onSortClicked(sortField, event) {
+        this._sortBy = sortField;
+        this.requestUpdate();
+    }
+
+    onSortDirectionClicked(sortDirection, event) {
+        this._sortDirection = sortDirection;
         this.requestUpdate();
     }
 
@@ -141,6 +147,8 @@ export default class PullRequestList extends LitElement {
         const milestones = [];
 
         let pulls = [].concat(this.pulls);
+
+        const sort_direction = (this._sortDirection === "desc" ? 1 : -1);
         pulls.sort((a, b) => {
             if (a.milestone && !milestones.includes(a.milestone.title)) {
                 milestones.push(a.milestone.title);
@@ -150,12 +158,12 @@ export default class PullRequestList extends LitElement {
             }
 
             if (this._sortBy === "stale") {
-                if (a.updated_at > b.updated_at) return 1;
-                if (a.updated_at < b.updated_at) return -1;
+                if (a.updated_at > b.updated_at) return 1 * sort_direction;
+                if (a.updated_at < b.updated_at) return -1 * sort_direction;
                 return 0;
             } else { // "age" is default.
-                if (a.created_at > b.created_at) return 1;
-                if (a.created_at < b.created_at) return -1;
+                if (a.created_at > b.created_at) return 1 * sort_direction;
+                if (a.created_at < b.created_at) return -1 * sort_direction;
                 return 0;
             }
         });
@@ -218,18 +226,38 @@ export default class PullRequestList extends LitElement {
                                 <span>sort by: </span>
                                 <span>
                                     <span
-                                            class="pulls-sort-action ${(this._sortBy === "age" ? "pulls-sort-action--active" : "")}"
-                                            title="Show older PRs first"
-                                            @click="${this.onSortClicked.bind(this, "age")}"
+                                        class="pulls-sort-action ${(this._sortBy === "age" ? "pulls-sort-action--active" : "")}"
+                                        title="Show older PRs first"
+                                        @click="${this.onSortClicked.bind(this, "age")}"
                                     >
                                         lifetime
                                     </span> ·
                                     <span
-                                            class="pulls-sort-action ${(this._sortBy === "stale" ? "pulls-sort-action--active" : "")}"
-                                            title="Show least recently updated PRs first"
-                                            @click="${this.onSortClicked.bind(this, "stale")}"
+                                        class="pulls-sort-action ${(this._sortBy === "stale" ? "pulls-sort-action--active" : "")}"
+                                        title="Show least recently updated PRs first"
+                                        @click="${this.onSortClicked.bind(this, "stale")}"
                                     >
                                         stale
+                                    </span>
+                                </span>
+                            </span>
+
+                            <span class="pulls-sort">
+                                <span></span>
+                                <span>
+                                    <span
+                                        class="pulls-sort-action ${(this._sortDirection === "asc" ? "pulls-sort-action--active" : "")}"
+                                        title="Show newer PRs first"
+                                        @click="${this.onSortDirectionClicked.bind(this, "asc")}"
+                                    >
+                                        asc
+                                    </span> ·
+                                    <span
+                                        class="pulls-sort-action ${(this._sortDirection === "desc" ? "pulls-sort-action--active" : "")}"
+                                        title="Show older PRs first"
+                                        @click="${this.onSortDirectionClicked.bind(this, "desc")}"
+                                    >
+                                        desc
                                     </span>
                                 </span>
                             </span>
