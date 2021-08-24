@@ -104,21 +104,43 @@ function processPulls(pullsRaw) {
         });
 
         // Add teams, if available.
-        item.requested_teams.forEach((teamItem) => {
+        if (item.requested_teams.length > 0) {
+            item.requested_teams.forEach((teamItem) => {
+                const team = {
+                    "id": teamItem.id,
+                    "name": teamItem.name,
+                    "avatar": `https://avatars.githubusercontent.com/t/${teamItem.id}?s=40&v=4`,
+                    "slug": teamItem.slug,
+                    "full_name": teamItem.name,
+                    "full_slug": teamItem.slug,
+                    "pull_count": 0,
+                };
+                // Include parent data into full name and slug.
+                if (teamItem.parent) {
+                    team.full_name = `${teamItem.parent.name}/${team.name}`;
+                    team.full_slug = `${teamItem.parent.slug}/${team.slug}`;
+                }
+
+                // Store the team if it hasn't been stored before.
+                if (typeof teams[team.id] == "undefined") {
+                    teams[team.id] = team;
+                }
+                teams[team.id].pull_count++;
+
+                // Reference the team.
+                pr.teams.push(team.id);
+            });
+        } else {
+            // If there are no teams, use a fake "empty" team to track those PRs as well.
             const team = {
-                "id": teamItem.id,
-                "name": teamItem.name,
-                "avatar": `https://avatars.githubusercontent.com/t/${teamItem.id}?s=40&v=4`,
-                "slug": teamItem.slug,
-                "full_name": teamItem.name,
-                "full_slug": teamItem.slug,
+                "id": -1,
+                "name": "No team assigned",
+                "avatar": "",
+                "slug": "_",
+                "full_name": "No team assigned",
+                "full_slug": "_",
                 "pull_count": 0,
             };
-            // Include parent data into full name and slug.
-            if (teamItem.parent) {
-                team.full_name = `${teamItem.parent.name}/${team.name}`;
-                team.full_slug = `${teamItem.parent.slug}/${team.slug}`;
-            }
 
             // Store the team if it hasn't been stored before.
             if (typeof teams[team.id] == "undefined") {
@@ -128,7 +150,7 @@ function processPulls(pullsRaw) {
 
             // Reference the team.
             pr.teams.push(team.id);
-        });
+        }
 
         pulls.push(pr);
     });

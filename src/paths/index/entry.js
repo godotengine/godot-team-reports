@@ -66,6 +66,9 @@ export default class EntryComponent extends LitElement {
 
             this._orderedTeams = Object.values(this._teams);
             this._orderedTeams.sort((a, b) => {
+                if (a.id === -1) return -1;
+                if (b.id === -1) return -1;
+
                 if (a.name > b.name) return 1;
                 if (a.name < b.name) return -1;
                 return 0;
@@ -119,13 +122,11 @@ export default class EntryComponent extends LitElement {
 
     render(){
         let pulls = [];
-        if (this._selectedTeam >= 0) {
-            this._pulls.forEach((pull) => {
-               if (pull.teams.includes(this._selectedTeam)) {
-                   pulls.push(pull);
-               }
-            });
-        }
+        this._pulls.forEach((pull) => {
+           if (pull.teams.includes(this._selectedTeam)) {
+               pulls.push(pull);
+           }
+        });
 
         return html`
             <page-content>
