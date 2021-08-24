@@ -317,9 +317,9 @@ export default class PullRequestItem extends LitElement {
                             <span>author: </span>
                             <a
                                 class="${authorClassList.join(" ")}"
-                                href="${this.author.url}"
+                                href="https://github.com/godotengine/godot/pulls/${this.author.user}"
                                 target="_blank"
-                                title="${this.author.user} has ${this.author.pull_count} ${(this.author.pull_count > 1) ? 'PRs' : 'PR'}"
+                                title="Open ${this.author.pull_count} ${(this.author.pull_count > 1) ? 'PRs' : 'PR'} by ${this.author.user}"
                             >
                                 ${this.author.user}
                             </a>
