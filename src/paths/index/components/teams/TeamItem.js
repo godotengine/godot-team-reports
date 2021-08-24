@@ -25,6 +25,7 @@ export default class TeamItem extends LitElement {
           
           :host .team-item {
             border-left: 5px solid transparent;
+            color: var(--g-font-color);
             cursor: pointer;
             display: flex;
             flex-direction: row;
@@ -47,10 +48,21 @@ export default class TeamItem extends LitElement {
           }
           
           :host .team-title {
-            color: var(--g-font-color);
             font-size: 13px;
             padding-left: 12px;
             white-space: nowrap;
+          }
+          
+          :host .team-pull-count {
+            color: var(--dimmed-font-color);
+            flex-grow: 1;
+            font-size: 13px;
+            padding-left: 6px;
+            text-align: right;
+          }
+          :host .team-pull-count--hot {
+            color: var(--g-font-color);
+            font-weight: 700;
           }
         `;
     }
@@ -59,11 +71,17 @@ export default class TeamItem extends LitElement {
     @property({ type: String, reflect: true }) name = '';
     @property({ type: String, reflect: true }) avatar = '';
     @property({ type: Boolean, reflect: true }) active = false;
+    @property({ type: Number }) pull_count = 0;
 
     render(){
         const classList = [ "team-item" ];
         if (this.active) {
             classList.push("team-item--active");
+        }
+
+        const countClassList = [ "team-pull-count" ];
+        if (this.pull_count > 50) {
+            countClassList.push("team-pull-count--hot");
         }
 
         return html`
@@ -72,10 +90,11 @@ export default class TeamItem extends LitElement {
                     class="team-icon"
                     style="background-image: url('${this.avatar}')"
                 ></div>
-                <span
-                    class="team-title"
-                >
+                <span class="team-title">
                     ${this.name}
+                </span>
+                <span class="${countClassList.join(" ")}">
+                    ${this.pull_count}
                 </span>
             </div>
         `;

@@ -9,6 +9,9 @@
   --link-font-color: #1d6dff;
   --link-font-color-hover: #1051c9;
   --link-font-color-inactive: #35496f;
+
+  --dimmed-font-color: #535c5f;
+  --light-font-color: #6b7893;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,6 +22,9 @@
     --link-font-color: #367df7;
     --link-font-color-hover: #6391ec;
     --link-font-color-inactive: #abbdcc;
+
+    --dimmed-font-color: #929da0;
+    --light-font-color: #8491ab;
   }
 }
 

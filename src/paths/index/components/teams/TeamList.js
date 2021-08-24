@@ -53,11 +53,12 @@ export default class TeamList extends LitElement {
                     this.teams.map((item) => {
                         return html`
                             <gr-team-item
-                                    .id="${item.id}"
-                                    .name="${item.name}"
-                                    .avatar="${item.avatar}"
-                                    ?active="${this.selected_team === item.id}"
-                                    @click="${this.onTabClicked.bind(this, item.id)}"
+                                .id="${item.id}"
+                                .name="${item.name}"
+                                .avatar="${item.avatar}"
+                                .pull_count="${item.pull_count}"
+                                ?active="${this.selected_team === item.id}"
+                                @click="${this.onTabClicked.bind(this, item.id)}"
                             />
                         `;
                     }) : html`

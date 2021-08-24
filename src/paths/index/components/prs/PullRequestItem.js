@@ -10,10 +10,7 @@ export default class PullRequestItem extends LitElement {
             --draft-font-color: #ffcc31;
             --draft-background-color: #9db3c0;
             --stats-background-color: #f9fafa;
-            --meta-font-color: #535c5f;
             
-            --review-team-color: #6b7893;
-
             --stat-temp0-color: #000000;
             --stat-temp1-color: #383824;
             --stat-temp2-color: #645b2c;
@@ -31,10 +28,7 @@ export default class PullRequestItem extends LitElement {
               --draft-font-color: #e0c537;
               --draft-background-color: #1e313c;
               --stats-background-color: #0f1316;
-              --meta-font-color: #929da0;
 
-              --review-team-color: #8491ab;
-              
               --stat-temp0-color: #ffffff;
               --stat-temp1-color: #f0ed7e;
               --stat-temp2-color: #f5d94a;
@@ -83,7 +77,7 @@ export default class PullRequestItem extends LitElement {
           }
           
           :host .pr-meta {
-            color: var(--meta-font-color);
+            color: var(--dimmed-font-color);
             display: flex;
             flex-direction: row;
             justify-content: space-between;
@@ -179,7 +173,7 @@ export default class PullRequestItem extends LitElement {
           }
           
           :host .pr-review-team {
-            color: var(--review-team-color);
+            color: var(--light-font-color);
             white-space: nowrap;
           }
           :host .pr-review-team + .pr-review-team:before {
