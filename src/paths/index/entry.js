@@ -40,6 +40,7 @@ export default class EntryComponent extends LitElement {
         this._orderedTeams = [];
         this._selectedTeam = -1;
 
+        this._authors = {};
         this._pulls = [];
 
         this._requestData();
@@ -60,6 +61,7 @@ export default class EntryComponent extends LitElement {
         if (data) {
             this._generatedAt = data.generated_at;
             this._teams = data.teams;
+            this._authors = data.authors;
             this._pulls = data.pulls;
 
             this._orderedTeams = Object.values(this._teams);
@@ -75,8 +77,9 @@ export default class EntryComponent extends LitElement {
             this._generatedAt = null;
             this._teams = {};
             this._orderedTeams = [];
-            this._pulls = [];
             this._selectedTeam = -1;
+            this._authors = {};
+            this._pulls = [];
         }
 
         this.requestUpdate();
@@ -117,6 +120,7 @@ export default class EntryComponent extends LitElement {
                     <gr-pull-list
                         .pulls="${pulls}"
                         .teams="${this._teams}"
+                        .authors="${this._authors}"
                     ></gr-pull-list>
                 </div>
             </page-content>

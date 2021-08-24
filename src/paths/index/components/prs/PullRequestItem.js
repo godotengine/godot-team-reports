@@ -104,12 +104,28 @@ export default class PullRequestItem extends LitElement {
             
           }
           
+          :host .pr-milestone-value {
+            font-weight: 700;
+          }
+          
           :host .pr-time {
             
           }
           :host .pr-time-value {
             border-bottom: 1px dashed var(--g-font-color);
             cursor: help;
+            font-weight: 700;
+          }
+          
+          :host .pr-author {
+            
+          }
+          :host .pr-author-value {
+            
+          }
+          :host .pr-author-value--hot:before {
+            content: "★";
+            color: var(--draft-font-color);
           }
           
           :host .pr-stats {
@@ -194,6 +210,7 @@ export default class PullRequestItem extends LitElement {
     @property({ type: String, reflect: true }) branch = '';
     @property({ type: String }) created_at = '';
     @property({ type: String }) updated_at = '';
+    @property({ type: Object }) author = null;
     @property({ type: Array }) teams = [];
 
     getStatTemp(value, factor) {
@@ -215,6 +232,11 @@ export default class PullRequestItem extends LitElement {
            if (a < b) return -1;
            return 0;
         });
+
+        const authorClassList = [ "pr-author-value" ];
+        if (this.author.pull_count > 40) {
+            authorClassList.push("pr-author-value--hot");
+        }
 
         return html`
             <div class="pr-container">
@@ -266,7 +288,9 @@ export default class PullRequestItem extends LitElement {
                         </div>
                         <div>
                             <span>branch: </span>
-                            <span>${this.branch}</span>
+                            <span class="pr-milestone-value">
+                                ${this.branch}
+                            </span>
                         </div>
                     </div>
                     
@@ -288,6 +312,17 @@ export default class PullRequestItem extends LitElement {
                             >
                                 ${greports.format.formatDate(this.updated_at)}
                             </span>
+                        </div>
+                        <div class="pr-author">
+                            <span>author: </span>
+                            <a
+                                class="${authorClassList.join(" ")}"
+                                href="${this.author.url}"
+                                target="_blank"
+                                title="${this.author.user} has ${this.author.pull_count} ${(this.author.pull_count > 1) ? 'PRs' : 'PR'}"
+                            >
+                                ${this.author.user}
+                            </a>
                         </div>
                     </div>
                 </div>

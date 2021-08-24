@@ -60,6 +60,7 @@ export default class PullRequestList extends LitElement {
 
     @property({ type: Array }) pulls = [];
     @property({ type: Object }) teams = {};
+    @property({ type: Object }) authors = {};
 
     constructor() {
         super();
@@ -113,7 +114,7 @@ export default class PullRequestList extends LitElement {
                 </div>
                 
                 ${pulls.map((item) => {
-                    let other_teams = [];
+                    const other_teams = [];
                     item.teams.forEach((teamId) => {
                         if (teamId !== this._selectedTeam) {
                             other_teams.push(
@@ -121,6 +122,11 @@ export default class PullRequestList extends LitElement {
                             );
                         }
                     });
+                    
+                    let author = null;
+                    if (typeof this.authors[item.authored_by] != "undefined") {
+                        author = this.authors[item.authored_by];
+                    }
 
                     return html`
                         <gr-pull-request
@@ -135,6 +141,7 @@ export default class PullRequestList extends LitElement {
 
                             .created_at="${item.created_at}"
                             .updated_at="${item.updated_at}"
+                            .author="${author}"
 
                             .diff_url="${item.diff_url}"
                             .patch_url="${item.patch_url}"
