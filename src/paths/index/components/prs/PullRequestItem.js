@@ -63,7 +63,7 @@ export default class PullRequestItem extends LitElement {
             margin-top: 6px;
             margin-bottom: 12px;
           }
-          :host .pr-title > span:nth-of-type(2) {
+          :host .pr-title-name {
             color: var(--g-font-color);
           }
           
@@ -71,9 +71,9 @@ export default class PullRequestItem extends LitElement {
             background-color: var(--draft-background-color);
             border-radius: 6px 6px;
             color: var(--draft-font-color);
-            font-size: 16px;
+            font-size: 14px;
             padding: 1px 6px;
-            vertical-align: super;
+            vertical-align: bottom;
           }
           
           :host .pr-meta {
@@ -245,10 +245,10 @@ export default class PullRequestItem extends LitElement {
                     href="${this.url}"
                     target="_blank"
                 >
-                    <span>#${this.id}</span> <span>${this.title}</span>
                     ${(this.draft ? html`
                         <span class="pr-title-draft">draft</span>
                     ` : '')}
+                    <span class="pr-title-id">#${this.id}</span> <span class="pr-title-name">${this.title}</span>
                 </a>
                 
                 <div class="pr-meta">

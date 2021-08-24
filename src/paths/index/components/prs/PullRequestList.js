@@ -23,6 +23,10 @@ export default class PullRequestList extends LitElement {
             flex-grow: 1;
           }
           
+          :host input[type=checkbox] {
+            vertical-align: bottom;
+          }
+          
           :host .team-pulls {
             background-color: var(--pulls-background-color);
             border-radius: 0 4px 4px 0;
@@ -37,9 +41,25 @@ export default class PullRequestList extends LitElement {
             display: flex;
             flex-direction: row;
             justify-content: space-between;
-            font-size: 14px;
+            font-size: 15px;
             padding: 10px 14px;
             margin-bottom: 6px;
+          }
+          
+          :host .pulls-count {
+            
+          }
+          :host .pulls-count strong {
+            font-size: 18px;
+          }
+          :host .pulls-count-total {
+            color: var(--dimmed-font-color);
+          }
+          
+          :host .pulls-filters {
+            display: flex;
+            flex-direction: column;
+            font-size: 13px;
           }
           
           :host .pulls-sort-action {
@@ -66,10 +86,16 @@ export default class PullRequestList extends LitElement {
         super();
 
         this._sortBy = "age";
+        this._showDraft = false;
     }
 
     onSortClicked(sortOrder, event) {
         this._sortBy = sortOrder;
+        this.requestUpdate();
+    }
+
+    onDraftsChecked(event) {
+        this._showDraft = event.target.checked;
         this.requestUpdate();
     }
 
@@ -87,28 +113,53 @@ export default class PullRequestList extends LitElement {
             }
         });
 
+        if (!this._showDraft) {
+            pulls = pulls.filter((item) => {
+               return !item.is_draft;
+            });
+        }
+
+        const total_pulls = this.pulls.length;
+        const filtered_pulls = pulls.length
+
         return html`
             <div class="team-pulls">
                 <div class="team-pulls-toolbar">
-                    <span>
+                    <span class="pulls-count">
                         <span>PRs to review: </span>
-                        <strong>${pulls.length}</strong>
+                        <strong>${filtered_pulls}</strong>
+                        ${(filtered_pulls !== total_pulls) ? html`
+                            <span class="pulls-count-total"> (out of ${total_pulls})</span>
+                        ` : ''
+                        }
                     </span>
-                    <span class="pulls-sort">
-                        <span>Sort by: </span>
-                        <span
-                            class="pulls-sort-action ${(this._sortBy === "age" ? "pulls-sort-action--active" : "")}"
-                            title="Show older PRs first"
-                            @click="${this.onSortClicked.bind(this, "age")}"
-                        >
-                            Lifetime
-                        </span> |
-                        <span
-                            class="pulls-sort-action ${(this._sortBy === "stale" ? "pulls-sort-action--active" : "")}"
-                            title="Show least recently updated PRs first"
-                            @click="${this.onSortClicked.bind(this, "stale")}"
-                        >
-                            Stale
+                    
+                    <span class="pulls-filters">
+                        <span class="pulls-filter">
+                            <label for="show-drafts">show drafts? </label>
+                            <input
+                                id="show-drafts"
+                                type="checkbox"
+                                @click="${this.onDraftsChecked}"
+                            />
+                        </span>
+                        
+                        <span class="pulls-sort">
+                            <span>sort by: </span>
+                            <span
+                                class="pulls-sort-action ${(this._sortBy === "age" ? "pulls-sort-action--active" : "")}"
+                                title="Show older PRs first"
+                                @click="${this.onSortClicked.bind(this, "age")}"
+                            >
+                                lifetime
+                            </span> ·
+                            <span
+                                class="pulls-sort-action ${(this._sortBy === "stale" ? "pulls-sort-action--active" : "")}"
+                                title="Show least recently updated PRs first"
+                                @click="${this.onSortClicked.bind(this, "stale")}"
+                            >
+                                stale
+                            </span>
                         </span>
                     </span>
                 </div>
