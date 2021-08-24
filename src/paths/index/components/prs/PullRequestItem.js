@@ -209,6 +209,13 @@ export default class PullRequestItem extends LitElement {
         const created_days = greports.format.getDaysSince(this.created_at);
         const stale_days = greports.format.getDaysSince(this.updated_at);
 
+        const other_teams = [].concat(this.teams);
+        other_teams.sort((a, b) => {
+           if (a > b) return 1;
+           if (a < b) return -1;
+           return 0;
+        });
+
         return html`
             <div class="pr-container">
                 <a
@@ -312,9 +319,9 @@ export default class PullRequestItem extends LitElement {
                 
                 <div class="pr-review">
                     <div class="pr-review-teams">
-                        ${(this.teams.length > 0) ? html`
+                        ${(other_teams.length > 0) ? html`
                             <span>also awaiting reviews from: </span>
-                            ${this.teams.map((item) => {
+                            ${other_teams.map((item) => {
                                 return html`
                                     <span class="pr-review-team">${item}</span>
                                 `;
