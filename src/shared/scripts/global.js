@@ -59,6 +59,21 @@ const ReportsUtils = {
       detail: detail
     });
   },
+
+  getHistoryHash() {
+    let rawHash = window.location.hash;
+    if (rawHash !== "") {
+      return rawHash.substr(1);
+    }
+
+    return "";
+  },
+
+  setHistoryHash(hash) {
+    const url = new URL(window.location);
+    url.hash = hash;
+    window.history.pushState({}, "", url);
+  },
 };
 
 const ReportsSingleton = {

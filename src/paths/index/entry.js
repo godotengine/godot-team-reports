@@ -70,8 +70,30 @@ export default class EntryComponent extends LitElement {
                 if (a.name < b.name) return -1;
                 return 0;
             });
-            if (this._orderedTeams.length) {
-                this._selectedTeam = this._orderedTeams.length ? this._orderedTeams[0].id : -1;
+
+            // Try to select the team that was passed in the URL.
+            let hasPresetTeam = false;
+            const requested_slug = greports.util.getHistoryHash();
+            if (requested_slug !== "") {
+                for (let i = 0; i < this._orderedTeams.length; i++) {
+                    const team = this._orderedTeams[i];
+                    if (team.slug === requested_slug) {
+                        this._selectedTeam = team.id;
+                        hasPresetTeam = true;
+                        break;
+                    }
+                }
+            }
+
+            // If no team was passed in the URL, or that team is not available, use the first one.
+            if (!hasPresetTeam) {
+                if (this._orderedTeams.length) {
+                    this._selectedTeam = this._orderedTeams[0].id;
+                    greports.util.setHistoryHash(this._orderedTeams[0].slug);
+                } else {
+                    this._selectedTeam = -1;
+                    greports.util.setHistoryHash("");
+                }
             }
         } else {
             this._generatedAt = null;

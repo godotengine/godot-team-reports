@@ -38,10 +38,12 @@ export default class TeamList extends LitElement {
     @property({ type: Array }) teams = [];
     @property({ type: Number }) selected_team = -1;
 
-    onTabClicked(tabId, event) {
+    onTabClicked(tabId, tabSlug, event) {
         this.dispatchEvent(greports.util.createEvent("tabclick", {
             "tabId": tabId,
         }));
+
+        greports.util.setHistoryHash(tabSlug);
     }
 
     render() {
@@ -58,7 +60,7 @@ export default class TeamList extends LitElement {
                                 .avatar="${item.avatar}"
                                 .pull_count="${item.pull_count}"
                                 ?active="${this.selected_team === item.id}"
-                                @click="${this.onTabClicked.bind(this, item.id)}"
+                                @click="${this.onTabClicked.bind(this, item.id, item.slug)}"
                             />
                         `;
                     }) : html`
