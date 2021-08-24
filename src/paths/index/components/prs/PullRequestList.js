@@ -20,14 +20,15 @@ export default class PullRequestList extends LitElement {
           
           /** Component styling **/
           :host {
+            flex-grow: 1;
           }
           
           :host .team-pulls {
             background-color: var(--pulls-background-color);
             border-radius: 0 4px 4px 0;
-            flex-grow: 1;
             padding: 8px 12px;
             max-width: 760px;
+            min-height: 200px;
           }
           
           :host .team-pulls-toolbar {

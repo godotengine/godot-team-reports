@@ -26,6 +26,7 @@ export default class TeamList extends LitElement {
             background-color: var(--teams-background-color);
             border-right: 2px solid var(--teams-border-color);
             width: 240px;
+            min-height: 216px;
           }
 
           :host .team-list h4 {
@@ -48,17 +49,21 @@ export default class TeamList extends LitElement {
             <div class="team-list">
                 <h4>Teams:</h4>
 
-                ${this.teams.map((item) => {
-                    return html`
-                        <gr-team-item
-                            .id="${item.id}"
-                            .name="${item.name}"
-                            .avatar="${item.avatar}"
-                            ?active="${this.selected_team === item.id}"
-                            @click="${this.onTabClicked.bind(this, item.id)}"
-                        />
-                    `;
-                })}
+                ${(this.teams.length > 0) ?
+                    this.teams.map((item) => {
+                        return html`
+                            <gr-team-item
+                                    .id="${item.id}"
+                                    .name="${item.name}"
+                                    .avatar="${item.avatar}"
+                                    ?active="${this.selected_team === item.id}"
+                                    @click="${this.onTabClicked.bind(this, item.id)}"
+                            />
+                        `;
+                    }) : html`
+                        <span>Loading...</span>
+                    `
+                }
             </div>
         `;
     }
