@@ -24,7 +24,17 @@ export default class PullRequestList extends LitElement {
           }
           
           :host input[type=checkbox] {
+            margin: 0;
             vertical-align: bottom;
+          }
+          
+          :host select {
+            background: var(--pulls-background-color);
+            border: 1px solid var(--pulls-background-color);
+            color: var(--g-font-color);
+            font-size: 12px;
+            outline: none;
+            min-width: 60px;
           }
           
           :host .team-pulls {
@@ -55,11 +65,33 @@ export default class PullRequestList extends LitElement {
           :host .pulls-count-total {
             color: var(--dimmed-font-color);
           }
-          
+
           :host .pulls-filters {
+            display: flex;
+            flex-direction: row;
+          }
+          :host .pulls-filters-column {
             display: flex;
             flex-direction: column;
             font-size: 13px;
+            min-width: 140px;
+          }
+          :host .pulls-filters-column + .pulls-filters-column {
+            margin-left: 38px;
+          }
+          
+          :host .pulls-filter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1px 0;
+          }
+          
+          :host .pulls-sort {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1px 0;
           }
           
           :host .pulls-sort-action {
@@ -87,6 +119,7 @@ export default class PullRequestList extends LitElement {
 
         this._sortBy = "age";
         this._showDraft = false;
+        this._filterMilestone = "";
     }
 
     onSortClicked(sortOrder, event) {
@@ -99,9 +132,23 @@ export default class PullRequestList extends LitElement {
         this.requestUpdate();
     }
 
+    onMilestoneChanged(event) {
+        this._filterMilestone = event.target.value;
+        this.requestUpdate();
+    }
+
     render(){
+        const milestones = [];
+
         let pulls = [].concat(this.pulls);
         pulls.sort((a, b) => {
+            if (a.milestone && !milestones.includes(a.milestone.title)) {
+                milestones.push(a.milestone.title);
+            }
+            if (b.milestone && !milestones.includes(b.milestone.title)) {
+                milestones.push(b.milestone.title);
+            }
+
             if (this._sortBy === "stale") {
                 if (a.updated_at > b.updated_at) return 1;
                 if (a.updated_at < b.updated_at) return -1;
@@ -113,11 +160,19 @@ export default class PullRequestList extends LitElement {
             }
         });
 
-        if (!this._showDraft) {
-            pulls = pulls.filter((item) => {
-               return !item.is_draft;
-            });
+        if (!milestones.includes(this._filterMilestone)) {
+            this._filterMilestone = "";
         }
+
+        pulls = pulls.filter((item) => {
+            if (!this._showDraft && item.is_draft) {
+                return false;
+            }
+            if (this._filterMilestone !== "" && item.milestone && item.milestone.title !== this._filterMilestone) {
+                return false;
+            }
+            return true;
+        });
 
         const total_pulls = this.pulls.length;
         const filtered_pulls = pulls.length
@@ -125,43 +180,61 @@ export default class PullRequestList extends LitElement {
         return html`
             <div class="team-pulls">
                 <div class="team-pulls-toolbar">
-                    <span class="pulls-count">
+                    <div class="pulls-count">
                         <span>PRs to review: </span>
                         <strong>${filtered_pulls}</strong>
                         ${(filtered_pulls !== total_pulls) ? html`
                             <span class="pulls-count-total"> (out of ${total_pulls})</span>
                         ` : ''
                         }
-                    </span>
+                    </div>
                     
-                    <span class="pulls-filters">
-                        <span class="pulls-filter">
-                            <label for="show-drafts">show drafts? </label>
-                            <input
-                                id="show-drafts"
-                                type="checkbox"
-                                @click="${this.onDraftsChecked}"
-                            />
-                        </span>
-                        
-                        <span class="pulls-sort">
-                            <span>sort by: </span>
-                            <span
-                                class="pulls-sort-action ${(this._sortBy === "age" ? "pulls-sort-action--active" : "")}"
-                                title="Show older PRs first"
-                                @click="${this.onSortClicked.bind(this, "age")}"
-                            >
-                                lifetime
-                            </span> ·
-                            <span
-                                class="pulls-sort-action ${(this._sortBy === "stale" ? "pulls-sort-action--active" : "")}"
-                                title="Show least recently updated PRs first"
-                                @click="${this.onSortClicked.bind(this, "stale")}"
-                            >
-                                stale
+                    <div class="pulls-filters">
+                        <span class="pulls-filters-column">
+                            <span class="pulls-filter">
+                                <label for="show-drafts">show drafts? </label>
+                                <input
+                                        id="show-drafts"
+                                        type="checkbox"
+                                        @click="${this.onDraftsChecked}"
+                                />
+                            </span>
+                            
+                            <span class="pulls-filter">
+                                <span>milestone: </span>
+                                <select @change="${this.onMilestoneChanged}">
+                                    <option value="">*</option>
+                                    ${milestones.map((item) => {
+                                        return html`
+                                            <option value="${item}">${item}</option>
+                                        `
+                                    })}
+                                </select>
                             </span>
                         </span>
-                    </span>
+
+                        <span class="pulls-filters-column">
+                            <span class="pulls-sort">
+                                <span>sort by: </span>
+                                <span>
+                                    <span
+                                            class="pulls-sort-action ${(this._sortBy === "age" ? "pulls-sort-action--active" : "")}"
+                                            title="Show older PRs first"
+                                            @click="${this.onSortClicked.bind(this, "age")}"
+                                    >
+                                        lifetime
+                                    </span> ·
+                                    <span
+                                            class="pulls-sort-action ${(this._sortBy === "stale" ? "pulls-sort-action--active" : "")}"
+                                            title="Show least recently updated PRs first"
+                                            @click="${this.onSortClicked.bind(this, "stale")}"
+                                    >
+                                        stale
+                                    </span>
+                                </span>
+                            </span>
+                        </span>
+                    </div>
                 </div>
                 
                 ${pulls.map((item) => {
