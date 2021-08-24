@@ -106,6 +106,7 @@ export default class PullRequestList extends LitElement {
           :host .pulls-sort-action--active:hover {
             color: var(--link-font-color-inactive);
             cursor: default;
+            text-decoration: underline;
           }
         `;
     }

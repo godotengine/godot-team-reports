@@ -58,7 +58,7 @@ export default class PullRequestItem extends LitElement {
           }
           
           :host .pr-title {
-            display: block;
+            display: inline-block;
             font-size: 20px;
             margin-top: 6px;
             margin-bottom: 12px;

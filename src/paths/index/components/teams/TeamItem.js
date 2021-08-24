@@ -29,7 +29,7 @@ export default class TeamItem extends LitElement {
             cursor: pointer;
             display: flex;
             flex-direction: row;
-            padding: 2px 12px;
+            padding: 3px 12px;
             align-items: center;
           }
           :host .team-item:hover {
@@ -57,7 +57,7 @@ export default class TeamItem extends LitElement {
             color: var(--dimmed-font-color);
             flex-grow: 1;
             font-size: 13px;
-            padding-left: 6px;
+            padding: 0 12px 0 6px;
             text-align: right;
           }
           :host .team-pull-count--hot {
