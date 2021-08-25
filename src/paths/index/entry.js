@@ -143,6 +143,7 @@ export default class EntryComponent extends LitElement {
                     <gr-pull-list
                         .pulls="${pulls}"
                         .teams="${this._teams}"
+                        .selected_team="${this._selectedTeam}"
                         .authors="${this._authors}"
                     ></gr-pull-list>
                 </div>
