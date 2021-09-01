@@ -364,7 +364,7 @@ export default class PullRequestItem extends LitElement {
                         ` : ''}
                     </div>
                     <div class="pr-download">
-                        <span>download changelog: </span>
+                        <span>download changeset: </span>
                         <a
                             href="${this.diff_url}"
                             target="_blank"
