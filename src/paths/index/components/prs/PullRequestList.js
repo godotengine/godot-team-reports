@@ -113,7 +113,8 @@ export default class PullRequestList extends LitElement {
 
     @property({ type: Array }) pulls = [];
     @property({ type: Object }) teams = {};
-    @property( { type: Number }) selected_team = -1;
+    @property( { type: Number }) selected_group = -1;
+    @property({ type: Boolean }) selected_is_person = false;
     @property({ type: Object }) authors = {};
 
     constructor() {
@@ -270,7 +271,14 @@ export default class PullRequestList extends LitElement {
                 ${pulls.map((item) => {
                     const other_teams = [];
                     item.teams.forEach((teamId) => {
-                        if (teamId !== this.selected_team) {
+                        if (teamId === -1) {
+                            return; // continue
+                        }
+                        
+                        if (
+                            this.selected_is_person 
+                            || (!this.selected_is_person && teamId !== this.selected_group)
+                        ) {
                             other_teams.push(
                                 this.teams[teamId].name
                             );

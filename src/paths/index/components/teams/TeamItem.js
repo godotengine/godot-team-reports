@@ -42,6 +42,7 @@ export default class TeamItem extends LitElement {
 
           :host .team-icon {
             background-size: cover;
+            border-radius: 2px;
             display: inline-block;
             width: 16px;
             height: 16px;

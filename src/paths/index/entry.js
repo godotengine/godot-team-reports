@@ -38,7 +38,10 @@ export default class EntryComponent extends LitElement {
 
         this._teams = {};
         this._orderedTeams = [];
-        this._selectedTeam = -1;
+        this._reviewers = {};
+        this._orderedReviewers = [];
+        this._selectedGroup = -1;
+        this._selectedIsPerson = false;
 
         this._authors = {};
         this._pulls = [];
@@ -61,6 +64,7 @@ export default class EntryComponent extends LitElement {
         if (data) {
             this._generatedAt = data.generated_at;
             this._teams = data.teams;
+            this._reviewers = data.reviewers;
             this._authors = data.authors;
             this._pulls = data.pulls;
 
@@ -74,27 +78,47 @@ export default class EntryComponent extends LitElement {
                 return 0;
             });
 
-            // Try to select the team that was passed in the URL.
-            let hasPresetTeam = false;
+            this._orderedReviewers = Object.values(this._reviewers);
+            this._orderedReviewers.sort((a, b) => {
+                if (a.name > b.name) return 1;
+                if (a.name < b.name) return -1;
+                return 0;
+            });
+
+            // Try to select the team or the reviewer that was passed in the URL.
+            let hasPresetGroup = false;
             const requested_slug = greports.util.getHistoryHash();
             if (requested_slug !== "") {
                 for (let i = 0; i < this._orderedTeams.length; i++) {
                     const team = this._orderedTeams[i];
                     if (team.slug === requested_slug) {
-                        this._selectedTeam = team.id;
-                        hasPresetTeam = true;
+                        this._selectedGroup = team.id;
+                        this._selectedIsPerson = false;
+                        hasPresetGroup = true;
                         break;
+                    }
+                }
+
+                if (!hasPresetGroup) {
+                    for (let i = 0; i < this._orderedReviewers.length; i++) {
+                        const reviewer = this._orderedReviewers[i];
+                        if (reviewer.slug === requested_slug) {
+                            this._selectedGroup = reviewer.id;
+                            this._selectedIsPerson = true;
+                            hasPresetGroup = true;
+                            break;
+                        }
                     }
                 }
             }
 
-            // If no team was passed in the URL, or that team is not available, use the first one.
-            if (!hasPresetTeam) {
+            // If no team/reviewer was passed in the URL, or that team/reviewer is not available, use the first team.
+            if (!hasPresetGroup) {
                 if (this._orderedTeams.length) {
-                    this._selectedTeam = this._orderedTeams[0].id;
+                    this._selectedGroup = this._orderedTeams[0].id;
                     greports.util.setHistoryHash(this._orderedTeams[0].slug);
                 } else {
-                    this._selectedTeam = -1;
+                    this._selectedGroup = -1;
                     greports.util.setHistoryHash("");
                 }
             }
@@ -102,7 +126,10 @@ export default class EntryComponent extends LitElement {
             this._generatedAt = null;
             this._teams = {};
             this._orderedTeams = [];
-            this._selectedTeam = -1;
+            this._reviewers = {};
+            this._orderedReviewers = [];
+            this._selectedGroup = -1;
+            this._selectedIsPerson = false;
             this._authors = {};
             this._pulls = [];
         }
@@ -111,21 +138,22 @@ export default class EntryComponent extends LitElement {
     }
 
     onTabClicked(event) {
-        this._selectedTeam = event.detail.tabId;
+        this._selectedGroup = event.detail.tabId;
+        this._selectedIsPerson = event.detail.isPerson;
         this.requestUpdate();
-    }
 
-    onSortClicked(sortOrder, event) {
-        this._sortBy = sortOrder;
-        this.requestUpdate();
+        window.scrollTo(0, 0);
     }
 
     render(){
         let pulls = [];
         this._pulls.forEach((pull) => {
-           if (pull.teams.includes(this._selectedTeam)) {
-               pulls.push(pull);
-           }
+            if (!this._selectedIsPerson && pull.teams.includes(this._selectedGroup)) {
+                pulls.push(pull);
+            }
+            if (this._selectedIsPerson && pull.reviewers.includes(this._selectedGroup)) {
+                pulls.push(pull);
+            }
         });
 
         return html`
@@ -136,14 +164,17 @@ export default class EntryComponent extends LitElement {
                 <div class="teams">
                     <gr-team-list
                         .teams="${this._orderedTeams}"
-                        .selected_team="${this._selectedTeam}"
+                        .reviewers="${this._orderedReviewers}"
+                        .selected="${this._selectedGroup}"
+                        .selected_is_person="${this._selectedIsPerson}"
                         @tabclick="${this.onTabClicked}"
                     ></gr-team-list>
                     
                     <gr-pull-list
                         .pulls="${pulls}"
                         .teams="${this._teams}"
-                        .selected_team="${this._selectedTeam}"
+                        .selected_group="${this._selectedGroup}"
+                        .selected_is_person="${this._selectedIsPerson}"
                         .authors="${this._authors}"
                     ></gr-pull-list>
                 </div>

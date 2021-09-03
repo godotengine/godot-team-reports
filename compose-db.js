@@ -3,6 +3,7 @@ const path = require('path');
 const fetch = require('node-fetch');
 
 const teams = {};
+const reviewers = {};
 const authors = {};
 const pulls = [];
 let page_count = 1;
@@ -62,6 +63,7 @@ function processPulls(pullsRaw) {
             "milestone": null,
 
             "teams": [],
+            "reviewers": [],
         };
 
         // Compose and link author information.
@@ -152,6 +154,28 @@ function processPulls(pullsRaw) {
             pr.teams.push(team.id);
         }
 
+        // Add individual reviewers, if available
+        if (item.requested_reviewers.length > 0) {
+            item.requested_reviewers.forEach((reviewerItem) => {
+                const reviewer = {
+                    "id": reviewerItem.id,
+                    "name": reviewerItem.login,
+                    "avatar": reviewerItem.avatar_url,
+                    "slug": reviewerItem.login,
+                    "pull_count": 0,
+                };
+
+                // Store the reviewer if it hasn't been stored before.
+                if (typeof reviewers[reviewer.id] == "undefined") {
+                    reviewers[reviewer.id] = reviewer;
+                }
+                reviewers[reviewer.id].pull_count++;
+
+                // Reference the reviewer.
+                pr.reviewers.push(reviewer.id);
+            });
+        }
+
         pulls.push(pr);
     });
 }
@@ -172,6 +196,7 @@ async function main() {
     const output = {
         "generated_at": Date.now(),
         "teams": teams,
+        "reviewers": reviewers,
         "authors": authors,
         "pulls": pulls,
     };
