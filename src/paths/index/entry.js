@@ -73,15 +73,21 @@ export default class EntryComponent extends LitElement {
                 if (a.id === -1) return -1;
                 if (b.id === -1) return -1;
 
-                if (a.name > b.name) return 1;
-                if (a.name < b.name) return -1;
+                const a_name = a.name.toLowerCase().replace(/^_/, "");
+                const b_name = b.name.toLowerCase().replace(/^_/, "");
+
+                if (a_name > b_name) return 1;
+                if (a_name < b_name) return -1;
                 return 0;
             });
 
             this._orderedReviewers = Object.values(this._reviewers);
             this._orderedReviewers.sort((a, b) => {
-                if (a.name > b.name) return 1;
-                if (a.name < b.name) return -1;
+                const a_name = a.name.toLowerCase();
+                const b_name = b.name.toLowerCase();
+
+                if (a_name > b_name) return 1;
+                if (a_name < b_name) return -1;
                 return 0;
             });
 

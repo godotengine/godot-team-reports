@@ -228,9 +228,12 @@ export default class PullRequestItem extends LitElement {
 
         const other_teams = [].concat(this.teams);
         other_teams.sort((a, b) => {
-           if (a > b) return 1;
-           if (a < b) return -1;
-           return 0;
+            const a_name = a.toLowerCase().replace(/^_/, "");
+            const b_name = b.toLowerCase().replace(/^_/, "");
+
+            if (a_name > b_name) return 1;
+            if (a_name < b_name) return -1;
+            return 0;
         });
 
         const authorClassList = [ "pr-author-value" ];
