@@ -300,6 +300,7 @@ export default class PullRequestList extends LitElement {
                             .labels="${item.labels}"
                             .milestone="${item.milestone}"
                             .branch="${item.target_branch}"
+                            .links="${item.links}"
 
                             .created_at="${item.created_at}"
                             .updated_at="${item.updated_at}"

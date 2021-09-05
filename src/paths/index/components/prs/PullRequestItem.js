@@ -128,6 +128,16 @@ export default class PullRequestItem extends LitElement {
             color: var(--draft-font-color);
           }
           
+          :host .pr-links {
+            font-size: 13px;
+            margin-top: 8px;
+          }
+          
+          :host .pr-link {
+            font-weight: 700;
+            white-space: nowrap;
+          }
+          
           :host .pr-stats {
             background-color: var(--stats-background-color);
             border-radius: 4px;
@@ -208,6 +218,7 @@ export default class PullRequestItem extends LitElement {
     @property({ type: Array }) labels = [];
     @property({ type: String, reflect: true }) milestone = '';
     @property({ type: String, reflect: true }) branch = '';
+    @property({ type: Array }) links = [];
     @property({ type: String }) created_at = '';
     @property({ type: String }) updated_at = '';
     @property({ type: Object }) author = null;
@@ -329,6 +340,32 @@ export default class PullRequestItem extends LitElement {
                         </div>
                     </div>
                 </div>
+                
+                ${(this.links.length > 0 ? html`
+                    <div class="pr-links">
+                        <span>linked issues: </span>
+                        ${this.links.map((item, index) => {
+                            let issueRef = "#" + item.issue;
+                            if (item.repo !== "godotengine/godot") {
+                                issueRef = item.repo + issueRef;
+                            }
+                            
+                            return html`
+                                ${(index > 0 ? html`
+                                    <span> · </span>
+                                ` : '')}
+                                <a
+                                    class="pr-link"
+                                    href="${item.url}"
+                                    target="_blank"
+                                    title="Open the issue ${issueRef} which this PR ${item.keyword}"
+                                >
+                                    ${issueRef}
+                                </a>
+                            `
+                        })}
+                    </div>
+                ` : '')}
                 
                 <div class="pr-stats">
                     <div

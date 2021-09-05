@@ -8,7 +8,15 @@ const authors = {};
 const pulls = [];
 let page_count = 1;
 
-const LINK_RE = /&page=([0-9]+)/g;
+const API_LINK_RE = /&page=([0-9]+)/g;
+// List of the keywords provided by https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue
+const GH_MAGIC_KEYWORDS = [
+    "close", "closes", "closed",
+    "fix", "fixes", "fixed",
+    "resolve", "resolves", "resolved",
+];
+const GH_MAGIC_RE = RegExp("(" + GH_MAGIC_KEYWORDS.join("|") + ") ([a-z0-9-_]+/[a-z0-9-_]+)?#([0-9]+)", "gi");
+const GH_MAGIC_FULL_RE = RegExp("(" + GH_MAGIC_KEYWORDS.join("|") + ") https://github.com/([a-z0-9-_]+/[a-z0-9-_]+)/issues/([0-9]+)", "gi");
 
 async function fetchPulls(page) {
     try {
@@ -25,7 +33,7 @@ async function fetchPulls(page) {
         const links = res.headers.get("link").split(",");
         links.forEach((link) => {
            if (link.includes('rel="last"')) {
-               const matches = LINK_RE.exec(link);
+               const matches = API_LINK_RE.exec(link);
                if (matches && matches[1]) {
                    page_count = Number(matches[1]);
                }
@@ -61,6 +69,7 @@ function processPulls(pullsRaw) {
 
             "labels": [],
             "milestone": null,
+            "links": [],
 
             "teams": [],
             "reviewers": [],
@@ -104,6 +113,9 @@ function processPulls(pullsRaw) {
             if (a.name < b.name) return -1;
             return 0;
         });
+
+        // Look for linked issues in the body.
+        pr.links = extractLinkedIssues(item.body);
 
         // Add teams, if available.
         if (item.requested_teams.length > 0) {
@@ -178,6 +190,44 @@ function processPulls(pullsRaw) {
 
         pulls.push(pr);
     });
+}
+
+function extractLinkedIssues(pullBody) {
+    const links = [];
+    if (!pullBody) {
+        return links;
+    }
+
+    const matches = [
+        ...pullBody.matchAll(GH_MAGIC_RE),
+        ...pullBody.matchAll(GH_MAGIC_FULL_RE)
+    ];
+
+    matches.forEach((item) => {
+        let repository = item[2];
+        if (!repository) {
+            repository = "godotengine/godot";
+        }
+
+        let keyword = item[1].toLowerCase();
+        if (keyword.startsWith("clo")) {
+            keyword = "closes";
+        } else if (keyword.startsWith("fix")) {
+            keyword = "fixes";
+        } else if (keyword.startsWith("reso")) {
+            keyword = "resolves";
+        }
+
+        links.push({
+            "full_match": item[0],
+            "keyword": keyword,
+            "repo": repository,
+            "issue": item[3],
+            "url": `https://github.com/${repository}/issues/${item[3]}`,
+        });
+    });
+
+    return links;
 }
 
 async function main() {
