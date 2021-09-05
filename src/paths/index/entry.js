@@ -34,6 +34,7 @@ export default class EntryComponent extends LitElement {
         super();
 
         this._entryRequested = false;
+        this._isLoading = true;
         this._generatedAt = null;
 
         this._teams = {};
@@ -59,6 +60,7 @@ export default class EntryComponent extends LitElement {
             return;
         }
         this._entryRequested = true;
+        this._isLoading = true;
         const data = await greports.api.getData();
 
         if (data) {
@@ -140,6 +142,7 @@ export default class EntryComponent extends LitElement {
             this._pulls = [];
         }
 
+        this._isLoading = false;
         this.requestUpdate();
     }
 
@@ -167,23 +170,27 @@ export default class EntryComponent extends LitElement {
                 <gr-index-entry .generated_at="${this._generatedAt}"></gr-index-entry>
                 <gr-index-description></gr-index-description>
                 
-                <div class="teams">
-                    <gr-team-list
-                        .teams="${this._orderedTeams}"
-                        .reviewers="${this._orderedReviewers}"
-                        .selected="${this._selectedGroup}"
-                        .selected_is_person="${this._selectedIsPerson}"
-                        @tabclick="${this.onTabClicked}"
-                    ></gr-team-list>
-                    
-                    <gr-pull-list
-                        .pulls="${pulls}"
-                        .teams="${this._teams}"
-                        .selected_group="${this._selectedGroup}"
-                        .selected_is_person="${this._selectedIsPerson}"
-                        .authors="${this._authors}"
-                    ></gr-pull-list>
-                </div>
+                ${(this._isLoading ? html`
+                    <h3>Loading...</h3>
+                ` : html`
+                    <div class="teams">
+                        <gr-team-list
+                            .teams="${this._orderedTeams}"
+                            .reviewers="${this._orderedReviewers}"
+                            .selected="${this._selectedGroup}"
+                            .selected_is_person="${this._selectedIsPerson}"
+                            @tabclick="${this.onTabClicked}"
+                        ></gr-team-list>
+                        
+                        <gr-pull-list
+                            .pulls="${pulls}"
+                            .teams="${this._teams}"
+                            .selected_group="${this._selectedGroup}"
+                            .selected_is_person="${this._selectedIsPerson}"
+                            .authors="${this._authors}"
+                        ></gr-pull-list>
+                    </div>
+                `)}
             </page-content>
         `;
     }
