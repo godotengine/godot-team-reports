@@ -209,6 +209,16 @@ function extractLinkedIssues(pullBody) {
             repository = "godotengine/godot";
         }
 
+        const issue_number = item[3];
+        const issue_url = `https://github.com/${repository}/issues/${issue_number}`;
+
+        const exists = links.find((item) => {
+            return item.url === issue_url
+        });
+        if (exists) {
+            return;
+        }
+
         let keyword = item[1].toLowerCase();
         if (keyword.startsWith("clo")) {
             keyword = "closes";
@@ -222,8 +232,8 @@ function extractLinkedIssues(pullBody) {
             "full_match": item[0],
             "keyword": keyword,
             "repo": repository,
-            "issue": item[3],
-            "url": `https://github.com/${repository}/issues/${item[3]}`,
+            "issue": issue_number,
+            "url": issue_url,
         });
     });
 
