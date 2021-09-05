@@ -50,6 +50,15 @@ export default class TeamList extends LitElement {
           :host .team-list-section--active {
             display: block;
           }
+          :host .team-list-section--selected:after {
+            content: '';
+            background: var(--section-active-border-color);
+            border-radius: 2px;
+            display: inline-block;
+            height: 4px;
+            width: 4px;
+            vertical-align: super;
+          }
         `;
     }
 
@@ -87,6 +96,21 @@ export default class TeamList extends LitElement {
     }
 
     render() {
+        const teamsTitleClassList = [ "team-list-title" ];
+        if (this._currentSection === "teams") {
+            teamsTitleClassList.push("team-list-title--active");
+        }
+        if (!this.selected_is_person) {
+            teamsTitleClassList.push("team-list-section--selected");
+        }
+        const reviewersTitleClassList = [ "team-list-title" ];
+        if (this._currentSection === "reviewers") {
+            reviewersTitleClassList.push("team-list-title--active");
+        }
+        if (this.selected_is_person) {
+            reviewersTitleClassList.push("team-list-section--selected");
+        }
+
         const teamsClassList = [ "team-list-section", "team-list-section--teams" ];
         if (this._currentSection === "teams") {
             teamsClassList.push("team-list-section--active");
@@ -100,13 +124,13 @@ export default class TeamList extends LitElement {
             <div class="team-list">
                 <div class="team-list-switcher">
                     <h4
-                        class="team-list-title ${(this._currentSection === "teams") ? "team-list-title--active" : ""}"
+                        class="${teamsTitleClassList.join(" ")}"
                         @click="${this.onSwitcherClicked.bind(this, "teams")}"
                     >
                         Teams
                     </h4>
                     <h4
-                        class="team-list-title ${(this._currentSection === "reviewers") ? "team-list-title--active" : ""}"
+                        class="${reviewersTitleClassList.join(" ")}"
                         @click="${this.onSwitcherClicked.bind(this, "reviewers")}"
                     >
                         Reviewers
