@@ -22,6 +22,9 @@ async function fetchGithub(url) {
     const init = {};
     init.headers = {};
     init.headers["Accept"] = "application/vnd.github.v3+json";
+    if (process.env.GITHUB_TOKEN) {
+        init.headers["Authorization"] = `token ${process.env.GITHUB_TOKEN}`;
+    }
 
     return await fetch(`https://api.github.com${url}`, init);
 }
