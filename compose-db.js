@@ -18,6 +18,31 @@ const GH_MAGIC_KEYWORDS = [
 const GH_MAGIC_RE = RegExp("(" + GH_MAGIC_KEYWORDS.join("|") + ") ([a-z0-9-_]+/[a-z0-9-_]+)?#([0-9]+)", "gi");
 const GH_MAGIC_FULL_RE = RegExp("(" + GH_MAGIC_KEYWORDS.join("|") + ") https://github.com/([a-z0-9-_]+/[a-z0-9-_]+)/issues/([0-9]+)", "gi");
 
+async function fetchGithub(url) {
+    const init = {};
+    init.headers = {};
+    init.headers["Accept"] = "application/vnd.github.v3+json";
+
+    return await fetch(`https://api.github.com${url}`, init);
+}
+
+async function checkRates() {
+    try {
+        const res = await fetchGithub("/rate_limit");
+        if (res.status !== 200) {
+            console.warn("    Failed to get the API rate limits.");
+            return;
+        }
+
+        const data = await res.json();
+        const core_apis = data.resources["core"];
+        console.log(`    Available API calls: ${core_apis.remaining}/${core_apis.limit}; resets at ${new Date(core_apis.reset * 1000).toISOString()}`);
+    } catch (err) {
+        console.error("    Error checking the API rate limits: " + err);
+        return [];
+    }
+}
+
 async function fetchPulls(page) {
     try {
         let page_text = page;
@@ -25,7 +50,7 @@ async function fetchPulls(page) {
             page_text = `${page}/${page_count}`;
         }
         console.log(`    Requesting page ${page_text} of pull request data.`);
-        const res = await fetch(`https://api.github.com/repos/godotengine/godot/pulls?state=open&per_page=100&page=${page}`);
+        const res = await fetchGithub(`/repos/godotengine/godot/pulls?state=open&per_page=100&page=${page}`);
         if (res.status !== 200) {
             return [];
         }
@@ -42,7 +67,7 @@ async function fetchPulls(page) {
 
         return await res.json();
     } catch (err) {
-        console.error("Error fetching pull request data: " + err);
+        console.error("    Error fetching pull request data: " + err);
         return [];
     }
 }
@@ -243,6 +268,9 @@ function extractLinkedIssues(pullBody) {
 async function main() {
     console.log("[*] Building local pull request database.");
 
+    console.log("[*] Checking the rate limits before.")
+    await checkRates();
+
     console.log("[*] Fetching pull request data from GitHub.");
     // Pages are starting with 1 (but 0 returns the same results).
     let page = 1;
@@ -251,6 +279,9 @@ async function main() {
         processPulls(pullsRaw);
         page++;
     }
+
+    console.log("[*] Checking the rate limits after.")
+    await checkRates();
 
     console.log("[*] Finalizing database.")
     const output = {
