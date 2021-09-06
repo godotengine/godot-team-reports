@@ -4,8 +4,9 @@ on:
   push:
     branches: [ master ]
   schedule:
-    # Every day every two hours starting at midnight (UTC).
-    - cron: '0 0,2,4,6,8,10,12,14,16,18,20,22 * * *'
+    # Run every 15 minutes of every hour, starting at 5 minutes (5m, 20m, 35m, 50m).
+    # The slight offset is there to try and avoid the high load times.
+    - cron: '5/15 * * * *'
 
 # Make sure jobs cannot overlap (e.g. one from push and one from schedule).
 concurrency:
