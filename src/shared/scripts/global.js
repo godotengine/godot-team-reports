@@ -20,9 +20,9 @@ const ReportsAPI = {
 const ReportsFormatter = {
   formatDate(dateString) {
     const options = {
-      year: 'numeric', month: 'long', day: 'numeric'
+      year: 'numeric', month: 'long', day: 'numeric',
     };
-    const dateFormatter =  new Intl.DateTimeFormat('en-US', options);
+    const dateFormatter = new Intl.DateTimeFormat('en-US', options);
 
     const date = new Date(dateString);
     return dateFormatter.format(date);
@@ -32,12 +32,21 @@ const ReportsFormatter = {
     const options = {
       year: 'numeric', month: 'long', day: 'numeric',
       hour: 'numeric', hour12: false, minute: 'numeric',
-      timeZone: 'UTC', timeZoneName: 'short'
+      timeZone: 'UTC', timeZoneName: 'short',
     };
-    const dateFormatter =  new Intl.DateTimeFormat('en-US', options);
+    const dateFormatter = new Intl.DateTimeFormat('en-US', options);
 
     const date = new Date(timeString);
     return dateFormatter.format(date);
+  },
+
+  formatTimespan(timeValue, timeUnit) {
+    const options = {
+      style: 'long',
+    };
+    const timeFormatter = new Intl.RelativeTimeFormat('en-US', options);
+
+    return timeFormatter.format(timeValue, timeUnit);
   },
 
   getDaysSince(dateString) {

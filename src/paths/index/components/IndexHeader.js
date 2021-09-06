@@ -39,14 +39,53 @@ export default class IndexHeader extends LitElement {
 
     @property({ type: Date }) generated_at = null;
 
+    constructor() {
+        super();
+
+        // Auto-refresh about once a minute so that the relative time of generation is always actual.
+        this._refreshTimeout = setTimeout(this._refresh.bind(this), 60 * 1000);
+    }
+
+    _refresh() {
+        this.requestUpdate();
+
+        // Continue updating.
+        this._refreshTimeout = setTimeout(this._refresh.bind(this), 60 * 1000);
+    }
+
     render() {
+        let generatedAt = "";
+        let generatedRel = "";
+
+        if (this.generated_at) {
+            generatedAt = greports.format.formatTimestamp(this.generated_at);
+
+            let timeValue = (Date.now() - this.generated_at) / (1000 * 60);
+            let timeUnit = "minute";
+
+            if (timeValue < 1) {
+                generatedRel = "just now";
+            } else {
+                if (timeValue > 60) {
+                    timeValue = timeValue / 60;
+                    timeUnit = "hour";
+                }
+
+                generatedRel = greports.format.formatTimespan(-Math.round(timeValue), timeUnit);
+            }
+        }
+
         return html`
             <div class="header">
                 <h1>
                     Godot Team Reports
                 </h1>
                 <div class="header-metadata">
-                    <span>data generated on ${greports.format.formatTimestamp(this.generated_at)}</span>
+                    ${(this.generated_at ? html`
+                        <span title="${generatedAt}">
+                            data generated ${generatedRel}
+                        </span>
+                    ` : '')}
                     <br/>
                     <a
                             href="https://github.com/pycbouh/godot-team-reports"
