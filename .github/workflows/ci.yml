@@ -41,7 +41,7 @@ jobs:
     - name: Archive production artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: out-folder
+        name: web-static
         path: out
 
     - name: Deploy to GitHub Pages 🚀
