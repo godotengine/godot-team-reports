@@ -88,7 +88,7 @@ export default class IndexHeader extends LitElement {
                     ` : '')}
                     <br/>
                     <a
-                            href="https://github.com/pycbouh/godot-team-reports"
+                            href="https://github.com/godotengine/godot-team-reports"
                             target="_blank"
                     >
                         contribute on GitHub
