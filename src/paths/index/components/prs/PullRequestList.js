@@ -123,7 +123,7 @@ export default class PullRequestList extends LitElement {
         this._sortBy = "age";
         this._sortDirection = "desc";
         this._showDraft = false;
-        this._filterMilestone = "";
+        this._filterMilestone = "4.0";
     }
 
     onSortClicked(sortField, event) {
@@ -217,7 +217,12 @@ export default class PullRequestList extends LitElement {
                                     <option value="">*</option>
                                     ${milestones.map((item) => {
                                         return html`
-                                            <option value="${item}">${item}</option>
+                                            <option 
+                                                    value="${item}" 
+                                                    .selected="${this._filterMilestone === item}"
+                                            >
+                                                ${item}
+                                            </option>
                                         `
                                     })}
                                 </select>
