@@ -4,6 +4,8 @@ This project is provided for Godot engine contributors to monitor stale and old 
 and help clean up the review backlog. PRs are grouped by the teams assigned to review
 them, so that maintainers have a good overview of their area of the engine.
 
+Live website: https://godotengine.github.io/godot-team-reports/
+
 ## Contributing
 
 This project is written in JavaScript and built using Node.JS. HTML and CSS are used
