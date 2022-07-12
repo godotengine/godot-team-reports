@@ -18,14 +18,20 @@ export default class EntryComponent extends LitElement {
             :host {
             }
           }
-          
+
           /** Component styling **/
           :host {
           }
-          
+
           :host .teams {
             display: flex;
             padding: 24px 0;
+          }
+
+          @media only screen and (max-width: 900px) {
+            :host .teams {
+              flex-wrap: wrap;
+            }
           }
         `;
     }
@@ -41,7 +47,7 @@ export default class EntryComponent extends LitElement {
         this._orderedTeams = [];
         this._reviewers = {};
         this._orderedReviewers = [];
-        this._selectedGroup = -1;
+        this._selectedGroup = {};
         this._selectedIsPerson = false;
 
         this._authors = {};
@@ -100,7 +106,7 @@ export default class EntryComponent extends LitElement {
                 for (let i = 0; i < this._orderedTeams.length; i++) {
                     const team = this._orderedTeams[i];
                     if (team.slug === requested_slug) {
-                        this._selectedGroup = team.id;
+                        this._selectedGroup = team;
                         this._selectedIsPerson = false;
                         hasPresetGroup = true;
                         break;
@@ -111,7 +117,7 @@ export default class EntryComponent extends LitElement {
                     for (let i = 0; i < this._orderedReviewers.length; i++) {
                         const reviewer = this._orderedReviewers[i];
                         if (reviewer.slug === requested_slug) {
-                            this._selectedGroup = reviewer.id;
+                            this._selectedGroup = reviewer;
                             this._selectedIsPerson = true;
                             hasPresetGroup = true;
                             break;
@@ -123,10 +129,10 @@ export default class EntryComponent extends LitElement {
             // If no team/reviewer was passed in the URL, or that team/reviewer is not available, use the first team.
             if (!hasPresetGroup) {
                 if (this._orderedTeams.length) {
-                    this._selectedGroup = this._orderedTeams[0].id;
+                    this._selectedGroup = this._orderedTeams[0];
                     greports.util.setHistoryHash(this._orderedTeams[0].slug);
                 } else {
-                    this._selectedGroup = -1;
+                    this._selectedGroup = {};
                     greports.util.setHistoryHash("");
                 }
             }
@@ -136,7 +142,7 @@ export default class EntryComponent extends LitElement {
             this._orderedTeams = [];
             this._reviewers = {};
             this._orderedReviewers = [];
-            this._selectedGroup = -1;
+            this._selectedGroup = {};
             this._selectedIsPerson = false;
             this._authors = {};
             this._pulls = [];
@@ -147,7 +153,7 @@ export default class EntryComponent extends LitElement {
     }
 
     onTabClicked(event) {
-        this._selectedGroup = event.detail.tabId;
+        this._selectedGroup = event.detail.tab;
         this._selectedIsPerson = event.detail.isPerson;
         this.requestUpdate();
 
@@ -157,10 +163,10 @@ export default class EntryComponent extends LitElement {
     render(){
         let pulls = [];
         this._pulls.forEach((pull) => {
-            if (!this._selectedIsPerson && pull.teams.includes(this._selectedGroup)) {
+            if (!this._selectedIsPerson && pull.teams.includes(this._selectedGroup.id)) {
                 pulls.push(pull);
             }
-            if (this._selectedIsPerson && pull.reviewers.includes(this._selectedGroup)) {
+            if (this._selectedIsPerson && pull.reviewers.includes(this._selectedGroup.id)) {
                 pulls.push(pull);
             }
         });
@@ -169,7 +175,7 @@ export default class EntryComponent extends LitElement {
             <page-content>
                 <gr-index-entry .generated_at="${this._generatedAt}"></gr-index-entry>
                 <gr-index-description></gr-index-description>
-                
+
                 ${(this._isLoading ? html`
                     <h3>Loading...</h3>
                 ` : html`
@@ -181,11 +187,11 @@ export default class EntryComponent extends LitElement {
                             .selected_is_person="${this._selectedIsPerson}"
                             @tabclick="${this.onTabClicked}"
                         ></gr-team-list>
-                        
+
                         <gr-pull-list
                             .pulls="${pulls}"
                             .teams="${this._teams}"
-                            .selected_group="${this._selectedGroup}"
+                            .selected_group="${this._selectedGroup.id}"
                             .selected_is_person="${this._selectedIsPerson}"
                             .authors="${this._authors}"
                         ></gr-pull-list>
