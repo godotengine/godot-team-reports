@@ -10,7 +10,7 @@ export default class PullRequestItem extends LitElement {
             --draft-font-color: #ffcc31;
             --draft-background-color: #9db3c0;
             --stats-background-color: #f9fafa;
-            
+
             --stat-temp0-color: #000000;
             --stat-temp1-color: #383824;
             --stat-temp2-color: #645b2c;
@@ -41,14 +41,14 @@ export default class PullRequestItem extends LitElement {
               --stat-temp9-color: #d3001c;
             }
           }
-          
+
           /** Component styling **/
           :host {
             border-bottom: 3px solid var(--pr-border-color);
             display: block;
             padding: 14px 12px 20px 12px;
           }
-          
+
           :host a {
             color: var(--link-font-color);
             text-decoration: none;
@@ -56,7 +56,7 @@ export default class PullRequestItem extends LitElement {
           :host a:hover {
             color: var(--link-font-color-hover);
           }
-          
+
           :host .pr-title {
             display: inline-block;
             font-size: 20px;
@@ -65,8 +65,9 @@ export default class PullRequestItem extends LitElement {
           }
           :host .pr-title-name {
             color: var(--g-font-color);
+            word-break: break-word;
           }
-          
+
           :host .pr-title-draft {
             background-color: var(--draft-background-color);
             border-radius: 6px 6px;
@@ -75,7 +76,7 @@ export default class PullRequestItem extends LitElement {
             padding: 1px 6px;
             vertical-align: bottom;
           }
-          
+
           :host .pr-meta {
             color: var(--dimmed-font-color);
             display: flex;
@@ -83,14 +84,14 @@ export default class PullRequestItem extends LitElement {
             justify-content: space-between;
             font-size: 13px;
           }
-          
+
           :host .pr-labels {
             display: flex;
             flex-flow: column wrap;
             padding: 4px 0;
             max-height: 60px;
           }
-          
+
           :host .pr-label {
             padding-right: 8px;
           }
@@ -101,43 +102,43 @@ export default class PullRequestItem extends LitElement {
             height: 8px;
           }
           :host .pr-label-name {
-            
+
           }
-          
+
           :host .pr-milestone-value {
             font-weight: 700;
           }
-          
+
           :host .pr-time {
-            
+
           }
           :host .pr-time-value {
             border-bottom: 1px dashed var(--g-font-color);
             cursor: help;
             font-weight: 700;
           }
-          
+
           :host .pr-author {
-            
+
           }
           :host .pr-author-value {
-            
+
           }
           :host .pr-author-value--hot:before {
             content: "★";
             color: var(--draft-font-color);
           }
-          
+
           :host .pr-links {
             font-size: 13px;
             margin-top: 8px;
           }
-          
+
           :host .pr-link {
             font-weight: 700;
             white-space: nowrap;
           }
-          
+
           :host .pr-stats {
             background-color: var(--stats-background-color);
             border-radius: 4px;
@@ -146,11 +147,11 @@ export default class PullRequestItem extends LitElement {
             padding: 10px 6px;
             margin-top: 12px;
           }
-          
+
           :host .pr-stat + .pr-stat {
             margin-left: 12px;
           }
-          
+
           :host .pr-stat--temp0 {
             color: var(--stat-temp0-color);
           }
@@ -186,7 +187,7 @@ export default class PullRequestItem extends LitElement {
             color: var(--stat-temp9-color);
             font-weight: 700;
           }
-          
+
           :host .pr-review {
             display: flex;
             justify-content: space-between;
@@ -197,7 +198,7 @@ export default class PullRequestItem extends LitElement {
           :host .pr-review-teams {
             max-width: 50%;
           }
-          
+
           :host .pr-review-team {
             color: var(--light-font-color);
             white-space: nowrap;
@@ -205,6 +206,19 @@ export default class PullRequestItem extends LitElement {
           :host .pr-review-team + .pr-review-team:before {
             content: "· ";
             white-space: break-spaces;
+          }
+
+          @media only screen and (max-width: 900px) {
+            :host {
+              padding: 14px 0 20px 0;
+            }
+            :host .pr-meta {
+              flex-wrap: wrap;
+            }
+            :host .pr-labels {
+              width: 100%;
+              justify-content: space-between;
+            }
           }
         `;
     }
@@ -264,7 +278,7 @@ export default class PullRequestItem extends LitElement {
                     ` : '')}
                     <span class="pr-title-id">#${this.id}</span> <span class="pr-title-name">${this.title}</span>
                 </a>
-                
+
                 <div class="pr-meta">
                     <div class="pr-labels">
                         ${this.labels.map((item) => {
@@ -285,7 +299,7 @@ export default class PullRequestItem extends LitElement {
                             `;
                         })}
                     </div>
-                    
+
                     <div class="pr-milestone">
                         <div>
                             <span>milestone: </span>
@@ -307,7 +321,7 @@ export default class PullRequestItem extends LitElement {
                             </span>
                         </div>
                     </div>
-                    
+
                     <div class="pr-timing">
                         <div class="pr-time">
                             <span>created: </span>
@@ -340,7 +354,7 @@ export default class PullRequestItem extends LitElement {
                         </div>
                     </div>
                 </div>
-                
+
                 ${(this.links.length > 0 ? html`
                     <div class="pr-links">
                         <span>linked issues: </span>
@@ -349,7 +363,7 @@ export default class PullRequestItem extends LitElement {
                             if (item.repo !== "godotengine/godot") {
                                 issueRef = item.repo + issueRef;
                             }
-                            
+
                             return html`
                                 ${(index > 0 ? html`
                                     <span> · </span>
@@ -366,7 +380,7 @@ export default class PullRequestItem extends LitElement {
                         })}
                     </div>
                 ` : '')}
-                
+
                 <div class="pr-stats">
                     <div
                         class="pr-stat"
@@ -391,7 +405,7 @@ export default class PullRequestItem extends LitElement {
                         </span>
                     </div>
                 </div>
-                
+
                 <div class="pr-review">
                     <div class="pr-review-teams">
                         ${(other_teams.length > 0) ? html`
@@ -410,7 +424,7 @@ export default class PullRequestItem extends LitElement {
                             target="_blank"
                         >
                             diff
-                        </a> | 
+                        </a> |
                         <a
                             href="${this.patch_url}"
                             target="_blank"
@@ -418,7 +432,7 @@ export default class PullRequestItem extends LitElement {
                             patch
                         </a>
                     </div>
-                    
+
                 </div>
             </div>
         `;

@@ -44,6 +44,21 @@ export default class IndexDescription extends LitElement {
             border-top: 1px solid var(--g-background-extra-color);
             width: 30%;
           }
+
+          @media only screen and (max-width: 900px) {
+            :host .header-description {
+              padding: 0 8px;
+              flex-direction: column;
+            }
+
+            :host .header-description-column {
+              width: 100%;
+            }
+            :host .header-description-column.header-extra-links {
+              text-align: center;
+              padding-top: 12px;
+            }
+          }
         `;
     }
 

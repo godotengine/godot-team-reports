@@ -11,15 +11,17 @@ export default class TeamList extends LitElement {
             --teams-background-color: #fcfcfa;
             --teams-border-color: #515c6c;
             --section-active-border-color: #397adf;
+            --teams-mobile-color: #9bbaed;
           }
           @media (prefers-color-scheme: dark) {
             :host {
               --teams-background-color: #0d1117;
               --teams-border-color: #515c6c;
               --section-active-border-color: #397adf;
+              --teams-mobile-color: #222c3d;
             }
           }
-          
+
           /** Component styling **/
           :host {
           }
@@ -43,7 +45,7 @@ export default class TeamList extends LitElement {
           :host .team-list-title--active {
             border-bottom: 3px solid var(--section-active-border-color);
           }
-          
+
           :host .team-list-section {
             display: none;
           }
@@ -59,18 +61,52 @@ export default class TeamList extends LitElement {
             width: 4px;
             vertical-align: super;
           }
+          :host .team-mobile-container {
+            display: none;
+            padding: 0 12px 24px 12px;
+          }
+          :host .team-mobile-button {
+            width: 100%;
+            padding: 12px 0;
+            margin: 0;
+            border: none;
+            border-radius: 4px;
+            background: var(--teams-mobile-color);
+            text-align: center;
+            cursor: pointer;
+          }
+
+          @media only screen and (max-width: 900px) {
+            :host {
+              width: 100%
+            }
+            :host .team-list {
+              display: none;
+              width: 100% !important;
+            }
+            :host .team-mobile-container,
+            :host .team-list.team-list--active {
+              display: block !important;
+            }
+          }
         `;
     }
 
     @property({ type: Array }) teams = [];
     @property({ type: Array }) reviewers = [];
-    @property({ type: Number }) selected = -1;
+    @property({ type: Number }) selected = {};
     @property({ type: Boolean }) selected_is_person = false;
 
     constructor() {
         super();
 
         this._currentSection = "teams";
+        this._mobileActive = false;
+    }
+
+    onMobileClicked() {
+        this._mobileActive = !this._mobileActive;
+        this.requestUpdate();
     }
 
     onSwitcherClicked(switchTo, event) {
@@ -78,13 +114,15 @@ export default class TeamList extends LitElement {
         this.requestUpdate();
     }
 
-    onTabClicked(tabId, tabSlug, isPerson, event) {
+    onTabClicked(tab, isPerson, event) {
         this.dispatchEvent(greports.util.createEvent("tabclick", {
-            "tabId": tabId,
+            "tab": tab,
             "isPerson": isPerson,
         }));
 
-        greports.util.setHistoryHash(tabSlug);
+        greports.util.setHistoryHash(tab.slug);
+        this._mobileActive = false;
+        this.requestUpdate();
     }
 
     update(changedProperties) {
@@ -120,8 +158,18 @@ export default class TeamList extends LitElement {
             reviewersClassList.push("team-list-section--active");
         }
 
+        const containerClassList = ["team-list"];
+        if (this._mobileActive) {
+            containerClassList.push("team-list--active");
+        }
+
         return html`
-            <div class="team-list">
+            <div class="team-mobile-container">
+                <p class="team-mobile-button" @click="${this.onMobileClicked.bind(this)}">
+                    ${(this.selected_is_person) ? html `Reviewer : ` : html `Team : `} ${this.selected.name}
+                </p>
+            </div>
+            <div class="${containerClassList.join(" ")}">
                 <div class="team-list-switcher">
                     <h4
                         class="${teamsTitleClassList.join(" ")}"
@@ -146,8 +194,8 @@ export default class TeamList extends LitElement {
                                     .name="${item.name}"
                                     .avatar="${item.avatar}"
                                     .pull_count="${item.pull_count}"
-                                    ?active="${!this.selected_is_person && this.selected === item.id}"
-                                    @click="${this.onTabClicked.bind(this, item.id, item.slug, false)}"
+                                    ?active="${!this.selected_is_person && this.selected.id === item.id}"
+                                    @click="${this.onTabClicked.bind(this, item, false)}"
                                 />
                             `;
                         }) : html`
@@ -155,7 +203,7 @@ export default class TeamList extends LitElement {
                         `
                     }
                 </div>
-                
+
                 <div class="${reviewersClassList.join(" ")}">
                     ${(this.reviewers.length > 0) ?
                         this.reviewers.map((item) => {
@@ -165,8 +213,8 @@ export default class TeamList extends LitElement {
                                     .name="${item.name}"
                                     .avatar="${item.avatar}"
                                     .pull_count="${item.pull_count}"
-                                    ?active="${this.selected_is_person && this.selected === item.id}"
-                                    @click="${this.onTabClicked.bind(this, item.id, item.slug, true)}"
+                                    ?active="${this.selected_is_person && this.selected.id === item.id}"
+                                    @click="${this.onTabClicked.bind(this, item, true)}"
                                 />
                             `;
                         }) : html`

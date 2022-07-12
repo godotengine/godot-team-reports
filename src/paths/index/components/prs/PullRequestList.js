@@ -17,17 +17,17 @@ export default class PullRequestList extends LitElement {
               --pulls-toolbar-color: #222c3d;
             }
           }
-          
+
           /** Component styling **/
           :host {
             flex-grow: 1;
           }
-          
+
           :host input[type=checkbox] {
             margin: 0;
             vertical-align: bottom;
           }
-          
+
           :host select {
             background: var(--pulls-background-color);
             border: 1px solid var(--pulls-background-color);
@@ -36,7 +36,7 @@ export default class PullRequestList extends LitElement {
             outline: none;
             min-width: 60px;
           }
-          
+
           :host .team-pulls {
             background-color: var(--pulls-background-color);
             border-radius: 0 4px 4px 0;
@@ -44,7 +44,7 @@ export default class PullRequestList extends LitElement {
             max-width: 760px;
             min-height: 200px;
           }
-          
+
           :host .team-pulls-toolbar {
             background: var(--pulls-toolbar-color);
             border-radius: 4px;
@@ -55,9 +55,9 @@ export default class PullRequestList extends LitElement {
             padding: 10px 14px;
             margin-bottom: 6px;
           }
-          
+
           :host .pulls-count {
-            
+
           }
           :host .pulls-count strong {
             font-size: 18px;
@@ -79,21 +79,21 @@ export default class PullRequestList extends LitElement {
           :host .pulls-filters-column + .pulls-filters-column {
             margin-left: 38px;
           }
-          
+
           :host .pulls-filter {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin: 1px 0;
           }
-          
+
           :host .pulls-sort {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin: 1px 0;
           }
-          
+
           :host .pulls-sort-action {
             color: var(--link-font-color);
             cursor: pointer;
@@ -101,12 +101,28 @@ export default class PullRequestList extends LitElement {
           :host .pulls-sort-action:hover {
             color: var(--link-font-color-hover);
           }
-          
+
           :host .pulls-sort-action--active,
           :host .pulls-sort-action--active:hover {
             color: var(--link-font-color-inactive);
             cursor: default;
             text-decoration: underline;
+          }
+
+          @media only screen and (max-width: 900px) {
+            :host .team-pulls {
+              padding: 8px;
+            }
+            :host .pulls-count {
+              margin-bottom: 12px;
+            }
+            :host .team-pulls-toolbar {
+              flex-wrap: wrap;
+            }
+            :host .pulls-filters {
+              width: 100%;
+              justify-content: space-between;
+            }
           }
         `;
     }
@@ -199,7 +215,7 @@ export default class PullRequestList extends LitElement {
                         ` : ''
                         }
                     </div>
-                    
+
                     <div class="pulls-filters">
                         <span class="pulls-filters-column">
                             <span class="pulls-filter">
@@ -210,15 +226,15 @@ export default class PullRequestList extends LitElement {
                                         @click="${this.onDraftsChecked}"
                                 />
                             </span>
-                            
+
                             <span class="pulls-filter">
                                 <span>milestone: </span>
                                 <select @change="${this.onMilestoneChanged}">
                                     <option value="">*</option>
                                     ${milestones.map((item) => {
                                         return html`
-                                            <option 
-                                                    value="${item}" 
+                                            <option
+                                                    value="${item}"
                                                     .selected="${this._filterMilestone === item}"
                                             >
                                                 ${item}
@@ -272,16 +288,16 @@ export default class PullRequestList extends LitElement {
                         </span>
                     </div>
                 </div>
-                
+
                 ${pulls.map((item) => {
                     const other_teams = [];
                     item.teams.forEach((teamId) => {
                         if (teamId === -1) {
                             return; // continue
                         }
-                        
+
                         if (
-                            this.selected_is_person 
+                            this.selected_is_person
                             || (!this.selected_is_person && teamId !== this.selected_group)
                         ) {
                             other_teams.push(
@@ -289,7 +305,7 @@ export default class PullRequestList extends LitElement {
                             );
                         }
                     });
-                    
+
                     let author = null;
                     if (typeof this.authors[item.authored_by] != "undefined") {
                         author = this.authors[item.authored_by];
@@ -313,7 +329,7 @@ export default class PullRequestList extends LitElement {
 
                             .diff_url="${item.diff_url}"
                             .patch_url="${item.patch_url}"
-                            
+
                             .teams="${other_teams}"
                         />
                     `;

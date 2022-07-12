@@ -35,6 +35,21 @@ export default class IndexHeader extends LitElement {
           :host .header-metadata a:hover {
             color: var(--link-font-color-hover);
           }
+
+          @media only screen and (max-width: 900px) {
+            :host .header {
+              flex-wrap: wrap;
+              text-align: center;
+            }
+            :host .header-title,
+            :host .header-metadata {
+              width: 100%;
+            }
+            :host .header-metadata {
+              padding-bottom: 12px;
+              text-align: center;
+            }
+          }
         `;
     }
 
@@ -78,7 +93,7 @@ export default class IndexHeader extends LitElement {
 
         return html`
             <div class="header">
-                <h1>
+                <h1 class="header-title">
                     Godot Team Reports
                 </h1>
                 <div class="header-metadata">
