@@ -17,12 +17,12 @@ export default class TeamItem extends LitElement {
               --tab-active-border-color: #397adf;
             }
           }
-          
+
           /** Component styling **/
           :host {
             max-width: 240px;
           }
-          
+
           :host .team-item {
             border-left: 5px solid transparent;
             color: var(--g-font-color);
@@ -47,13 +47,13 @@ export default class TeamItem extends LitElement {
             width: 16px;
             height: 16px;
           }
-          
+
           :host .team-title {
             font-size: 13px;
             padding-left: 12px;
             white-space: nowrap;
           }
-          
+
           :host .team-pull-count {
             color: var(--dimmed-font-color);
             flex-grow: 1;
@@ -64,6 +64,17 @@ export default class TeamItem extends LitElement {
           :host .team-pull-count--hot {
             color: var(--g-font-color);
             font-weight: 700;
+          }
+
+          @media only screen and (max-width: 900px) {
+            :host .team-item {
+              padding: 6px 16px;
+            }
+
+            :host .team-title,
+            :host .team-pull-count {
+              font-size: 16px;
+            }
           }
         `;
     }
@@ -87,7 +98,7 @@ export default class TeamItem extends LitElement {
 
         return html`
             <div class="${classList.join(" ")}">
-                <div 
+                <div
                     class="team-icon"
                     style="background-image: url('${this.avatar}')"
                 ></div>

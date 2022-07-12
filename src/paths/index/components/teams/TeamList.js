@@ -80,9 +80,17 @@ export default class TeamList extends LitElement {
             :host {
               width: 100%
             }
+
+            :host .team-list-switcher {
+                font-size: 17px;
+            }
+
             :host .team-list {
               display: none;
               width: 100% !important;
+            }
+            :host .team-list.team-list--active {
+                margin-bottom: 24px;
             }
             :host .team-mobile-container,
             :host .team-list.team-list--active {

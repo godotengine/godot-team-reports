@@ -112,6 +112,8 @@ export default class PullRequestList extends LitElement {
           @media only screen and (max-width: 900px) {
             :host .team-pulls {
               padding: 8px;
+              max-width: 95%;
+              margin: 0px auto;
             }
             :host .pulls-count {
               margin-bottom: 12px;
@@ -122,6 +124,17 @@ export default class PullRequestList extends LitElement {
             :host .pulls-filters {
               width: 100%;
               justify-content: space-between;
+            }
+
+            :host .pulls-filters-column {
+                font-size: 15px;
+            }
+            :host .pulls-filters-column > span {
+                padding: 2px 0;
+            }
+            :host .pulls-filter > *:first-child,
+            :host .pulls-sort > *:first-child {
+                padding-right: 12px;
             }
           }
         `;
