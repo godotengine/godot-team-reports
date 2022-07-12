@@ -13,19 +13,20 @@ export default class IndexHeader extends LitElement {
               --header-meta-color: #515c6c;
             }
           }
-          
+
           /** Component styling **/
           :host {
           }
-          
+
           :host .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
           }
-          
+
           :host .header-metadata {
             color: var(--header-meta-color);
+            text-align: right;
           }
           :host .header-metadata a {
             color: var(--link-font-color);
