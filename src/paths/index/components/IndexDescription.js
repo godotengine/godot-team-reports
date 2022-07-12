@@ -30,6 +30,8 @@ export default class IndexDescription extends LitElement {
                 and either accepting or rejecting them.
                 <br/>
                 Positively reviewed PRs are open to be merged by responsible maintainers.
+                <br/>
+                See also https://godot-proposals-viewer.github.io/.
             </p>
         `;
     }
