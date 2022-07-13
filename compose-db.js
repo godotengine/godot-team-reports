@@ -288,6 +288,7 @@ function processPulls(pullsRaw) {
 
         // Extract requested reviewers.
         let review_requests = mapNodes(item.reviewRequests).map(it => it.requestedReviewer);
+        console.dir(mapNodes(item.reviewRequests));
 
         // Add teams, if available.
         let requested_teams = review_requests.filter(it => it && it["__typename"] === "Team");
