@@ -62,6 +62,17 @@ function mapNodes(object) {
     return object.edges.map((item) => item["node"])
 }
 
+function sluggifyTeam(name) {
+    let slug = name
+        .toLowerCase()
+        // Replace runs of non-alphanumerical characters with '-'; '_' is also allowed.
+        .replace(/[^0-9a-z_]+/g, "-")
+        // Trim trailing '-' characters.
+        .replace(/[-]+$/, "");
+
+    return slug;
+}
+
 async function checkRates() {
     try {
         const query = `
@@ -160,11 +171,9 @@ async function fetchPulls(page) {
                             id
                             name
                             avatarUrl
-                            slug
                             
                             parentTeam {
                               name
-                              slug
                             }
                           }
                           
@@ -297,15 +306,15 @@ function processPulls(pullsRaw) {
                     "id": teamItem.id,
                     "name": teamItem.name,
                     "avatar": teamItem.avatarUrl,
-                    "slug": teamItem.slug,
+                    "slug": sluggifyTeam(teamItem.name),
                     "full_name": teamItem.name,
-                    "full_slug": teamItem.slug,
+                    "full_slug": sluggifyTeam(teamItem.name),
                     "pull_count": 0,
                 };
                 // Include parent data into full name and slug.
                 if (teamItem.parentTeam) {
                     team.full_name = `${teamItem.parentTeam.name}/${team.name}`;
-                    team.full_slug = `${teamItem.parentTeam.slug}/${team.slug}`;
+                    team.full_slug = `${sluggifyTeam(teamItem.parentTeam.name)}/${team.slug}`;
                 }
 
                 // Store the team if it hasn't been stored before.
