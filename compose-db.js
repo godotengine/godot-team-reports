@@ -47,6 +47,17 @@ async function fetchGithub(query) {
     return await fetch("https://api.github.com/graphql", init);
 }
 
+function handleErrors(data) {
+    if (typeof data["errors"] === "undefined") {
+        return;
+    }
+
+    console.warn(`    Server handled the request, but there were errors:`);
+    data.errors.forEach((item) => {
+       console.log(`    [${item.type}] ${item.message}`);
+    });
+}
+
 function mapNodes(object) {
     return object.edges.map((item) => item["node"])
 }
@@ -66,6 +77,8 @@ async function checkRates() {
         }
 
         const data = await res.json();
+        handleErrors(data);
+
         const rate_limit = data.data["rateLimit"];
         console.log(`    [$${rate_limit.cost}] Available API calls: ${rate_limit.remaining}/${rate_limit.limit}; resets at ${rate_limit.resetAt}`);
     } catch (err) {
@@ -183,6 +196,8 @@ async function fetchPulls(page) {
         }
 
         const data = await res.json();
+        handleErrors(data);
+
         const rate_limit = data.data["rateLimit"];
         const repository = data.data["repository"];
         const pulls_data = mapNodes(repository.pullRequests);
@@ -275,7 +290,7 @@ function processPulls(pullsRaw) {
         let review_requests = mapNodes(item.reviewRequests).map(it => it.requestedReviewer);
 
         // Add teams, if available.
-        let requested_teams = review_requests.filter(it => it["__typename"] === "Team");
+        let requested_teams = review_requests.filter(it => it && it["__typename"] === "Team");
         if (requested_teams.length > 0) {
             requested_teams.forEach((teamItem) => {
                 const team = {
@@ -325,7 +340,7 @@ function processPulls(pullsRaw) {
         }
 
         // Add individual reviewers, if available
-        let requested_reviewers = review_requests.filter(it => it["__typename"] === "User");
+        let requested_reviewers = review_requests.filter(it => it && it["__typename"] === "User");
         if (requested_reviewers.length > 0) {
             requested_reviewers.forEach((reviewerItem) => {
                 const reviewer = {
