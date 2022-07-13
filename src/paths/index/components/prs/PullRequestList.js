@@ -10,11 +10,19 @@ export default class PullRequestList extends LitElement {
           :host {
             --pulls-background-color: #e5edf8;
             --pulls-toolbar-color: #9bbaed;
+
+            --sort-color: #5c7bb6;
+            --sort-color-hover: #2862cd;
+            --sort-color-active: #2054b5;
           }
           @media (prefers-color-scheme: dark) {
             :host {
               --pulls-background-color: #191d23;
               --pulls-toolbar-color: #222c3d;
+              
+              --sort-color: #4970ad;
+              --sort-color-hover: #5b87de;
+              --sort-color-active: #6b9aea;
             }
           }
 
@@ -95,16 +103,16 @@ export default class PullRequestList extends LitElement {
           }
 
           :host .pulls-sort-action {
-            color: var(--link-font-color);
+            color: var(--sort-color);
             cursor: pointer;
           }
           :host .pulls-sort-action:hover {
-            color: var(--link-font-color-hover);
+            color: var(--sort-color-hover);
           }
 
           :host .pulls-sort-action--active,
           :host .pulls-sort-action--active:hover {
-            color: var(--link-font-color-inactive);
+            color: var(--sort-color-active);
             cursor: default;
             text-decoration: underline;
           }
@@ -142,7 +150,7 @@ export default class PullRequestList extends LitElement {
 
     @property({ type: Array }) pulls = [];
     @property({ type: Object }) teams = {};
-    @property( { type: Number }) selected_group = -1;
+    @property( { type: String }) selected_group = "";
     @property({ type: Boolean }) selected_is_person = false;
     @property({ type: Object }) authors = {};
 
@@ -153,6 +161,7 @@ export default class PullRequestList extends LitElement {
         this._sortDirection = "desc";
         this._showDraft = false;
         this._filterMilestone = "4.0";
+        this._filterMergeable = "";
     }
 
     onSortClicked(sortField, event) {
@@ -173,6 +182,29 @@ export default class PullRequestList extends LitElement {
     onMilestoneChanged(event) {
         this._filterMilestone = event.target.value;
         this.requestUpdate();
+    }
+
+    onMergeableChanged(event) {
+        this._filterMergeable = event.target.value;
+        this.requestUpdate();
+    }
+
+    getMergeableFilterValue(state, reason) {
+        const descriptions = {
+            'UNKNOWN':     "unknown",
+
+            'CONFLICTING': "no",
+            'MERGEABLE':   "yes",
+        };
+
+        if (typeof descriptions[state] === "undefined") {
+            return "unknown";
+        }
+
+        if (state === 'MERGEABLE' && ![ 'CLEAN', 'HAS_HOOKS', 'UNSTABLE' ].includes(reason)) {
+            return "maybe";
+        }
+        return descriptions[state];
     }
 
     render(){
@@ -204,11 +236,18 @@ export default class PullRequestList extends LitElement {
             this._filterMilestone = "";
         }
 
+        let mergeables = [
+            "no", "maybe", "yes"
+        ];
+
         pulls = pulls.filter((item) => {
             if (!this._showDraft && item.is_draft) {
                 return false;
             }
             if (this._filterMilestone !== "" && item.milestone && item.milestone.title !== this._filterMilestone) {
+                return false;
+            }
+            if (this._filterMergeable !== "" && this.getMergeableFilterValue(item.mergeable_state, item.mergeable_reason) !== this._filterMergeable) {
                 return false;
             }
             return true;
@@ -234,9 +273,9 @@ export default class PullRequestList extends LitElement {
                             <span class="pulls-filter">
                                 <label for="show-drafts">show drafts? </label>
                                 <input
-                                        id="show-drafts"
-                                        type="checkbox"
-                                        @click="${this.onDraftsChecked}"
+                                    id="show-drafts"
+                                    type="checkbox"
+                                    @click="${this.onDraftsChecked}"
                                 />
                             </span>
 
@@ -247,8 +286,25 @@ export default class PullRequestList extends LitElement {
                                     ${milestones.map((item) => {
                                         return html`
                                             <option
-                                                    value="${item}"
-                                                    .selected="${this._filterMilestone === item}"
+                                                value="${item}"
+                                                .selected="${this._filterMilestone === item}"
+                                            >
+                                                ${item}
+                                            </option>
+                                        `
+                                    })}
+                                </select>
+                            </span>
+                            
+                            <span class="pulls-filter">
+                                <span>mergeable: </span>
+                                <select @change="${this.onMergeableChanged}">
+                                    <option value="">*</option>
+                                    ${mergeables.map((item) => {
+                                        return html`
+                                            <option
+                                                value="${item}"
+                                                .selected="${this._filterMergeable === item}"
                                             >
                                                 ${item}
                                             </option>
@@ -305,7 +361,7 @@ export default class PullRequestList extends LitElement {
                 ${pulls.map((item) => {
                     const other_teams = [];
                     item.teams.forEach((teamId) => {
-                        if (teamId === -1) {
+                        if (teamId === "") {
                             return; // continue
                         }
 
@@ -330,6 +386,8 @@ export default class PullRequestList extends LitElement {
                             .title="${item.title}"
                             .url="${item.url}"
                             ?draft="${item.is_draft}"
+                            .mergeable_state="${item.mergeable_state}"
+                            .mergeable_reason="${item.mergeable_reason}"
 
                             .labels="${item.labels}"
                             .milestone="${item.milestone}"

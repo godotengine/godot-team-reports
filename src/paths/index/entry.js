@@ -78,8 +78,8 @@ export default class EntryComponent extends LitElement {
 
             this._orderedTeams = Object.values(this._teams);
             this._orderedTeams.sort((a, b) => {
-                if (a.id === -1) return -1;
-                if (b.id === -1) return -1;
+                if (a.id === "") return -1;
+                if (b.id === "") return 1;
 
                 const a_name = a.name.toLowerCase().replace(/^_/, "");
                 const b_name = b.name.toLowerCase().replace(/^_/, "");

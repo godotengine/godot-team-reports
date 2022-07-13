@@ -6,9 +6,21 @@ const teams = {};
 const reviewers = {};
 const authors = {};
 const pulls = [];
-let page_count = 1;
 
-const API_LINK_RE = /&page=([0-9]+)/g;
+const PULLS_PER_PAGE = 100;
+let page_count = 1;
+let last_cursor = "";
+
+const API_REPOSITORY_ID = `owner:"godotengine" name:"godot"`;
+const API_RATE_LIMIT = `
+  rateLimit {
+    limit
+    cost
+    remaining
+    resetAt
+  }
+`;
+
 // List of the keywords provided by https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue
 const GH_MAGIC_KEYWORDS = [
     "close", "closes", "closed",
@@ -18,57 +30,169 @@ const GH_MAGIC_KEYWORDS = [
 const GH_MAGIC_RE = RegExp("(" + GH_MAGIC_KEYWORDS.join("|") + ") ([a-z0-9-_]+/[a-z0-9-_]+)?#([0-9]+)", "gi");
 const GH_MAGIC_FULL_RE = RegExp("(" + GH_MAGIC_KEYWORDS.join("|") + ") https://github.com/([a-z0-9-_]+/[a-z0-9-_]+)/issues/([0-9]+)", "gi");
 
-async function fetchGithub(url) {
+async function fetchGithub(query) {
     const init = {};
+    init.method = "POST";
     init.headers = {};
-    init.headers["Accept"] = "application/vnd.github.v3+json";
+    init.headers["Content-Type"] = "application/json";
+    init.headers["Accept"] = "application/vnd.github.merge-info-preview+json";
     if (process.env.GITHUB_TOKEN) {
         init.headers["Authorization"] = `token ${process.env.GITHUB_TOKEN}`;
     }
 
-    return await fetch(`https://api.github.com${url}`, init);
+    init.body = JSON.stringify({
+        query,
+    });
+
+    return await fetch("https://api.github.com/graphql", init);
+}
+
+function mapNodes(object) {
+    return object.edges.map((item) => item["node"])
 }
 
 async function checkRates() {
     try {
-        const res = await fetchGithub("/rate_limit");
+        const query = `
+        query {
+          ${API_RATE_LIMIT}
+        }
+        `;
+
+        const res = await fetchGithub(query);
         if (res.status !== 200) {
-            console.warn("    Failed to get the API rate limits.");
+            console.warn(`    Failed to get the API rate limits; server responded with code ${res.status}`);
             return;
         }
 
         const data = await res.json();
-        const core_apis = data.resources["core"];
-        console.log(`    Available API calls: ${core_apis.remaining}/${core_apis.limit}; resets at ${new Date(core_apis.reset * 1000).toISOString()}`);
+        const rate_limit = data.data["rateLimit"];
+        console.log(`    [$${rate_limit.cost}] Available API calls: ${rate_limit.remaining}/${rate_limit.limit}; resets at ${rate_limit.resetAt}`);
     } catch (err) {
         console.error("    Error checking the API rate limits: " + err);
-        return [];
+        return;
     }
 }
 
 async function fetchPulls(page) {
     try {
+        let after_cursor = "";
+        if (last_cursor !== "") {
+            after_cursor = `after: "${last_cursor}"`;
+        }
+
+        const query = `
+        query {
+          ${API_RATE_LIMIT}
+          repository(${API_REPOSITORY_ID}) {
+            pullRequests(first:${PULLS_PER_PAGE} ${after_cursor} states: OPEN) {
+              totalCount
+              pageInfo {
+                endCursor
+                hasNextPage
+              }
+              edges {
+                node {
+                  id
+                  number
+                  url
+                  title
+                  state
+                  isDraft
+                  mergeable
+                  mergeStateStatus
+                  createdAt
+                  updatedAt
+                  
+                  bodyText
+                  
+                  baseRef {
+                    name
+                  }
+                  
+                  author {
+                    login
+                    avatarUrl
+                    url
+                    
+                    ... on User {
+                      id
+                    }
+                  }
+                  
+                  milestone {
+                    id
+                    title
+                    url
+                  }
+                  
+                  labels (first: 100) {
+                    edges {
+                      node {
+                        id
+                        name
+                        color
+                      }
+                    }
+                  }
+                  
+                  reviewRequests(first: 100) {
+                    edges {
+                      node {
+                        id
+                        requestedReviewer {
+                          __typename
+                        
+                          ... on Team {
+                            id
+                            name
+                            avatarUrl
+                            slug
+                            
+                            parentTeam {
+                              name
+                              slug
+                            }
+                          }
+                          
+                          ... on User {
+                            id
+                            login
+                            avatarUrl
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        `;
+
         let page_text = page;
         if (page_count > 1) {
             page_text = `${page}/${page_count}`;
         }
         console.log(`    Requesting page ${page_text} of pull request data.`);
-        const res = await fetchGithub(`/repos/godotengine/godot/pulls?state=open&per_page=100&page=${page}`);
+        const res = await fetchGithub(query);
         if (res.status !== 200) {
+            console.warn(`    Failed to get pull requests for '${API_REPOSITORY_ID}'; server responded with code ${res.status}`);
             return [];
         }
 
-        const links = res.headers.get("link").split(",");
-        links.forEach((link) => {
-           if (link.includes('rel="last"')) {
-               const matches = API_LINK_RE.exec(link);
-               if (matches && matches[1]) {
-                   page_count = Number(matches[1]);
-               }
-           }
-        });
+        const data = await res.json();
+        const rate_limit = data.data["rateLimit"];
+        const repository = data.data["repository"];
+        const pulls_data = mapNodes(repository.pullRequests);
 
-        return await res.json();
+        console.log(`    [$${rate_limit.cost}] Retrieved ${pulls_data.length} pull requests; processing...`);
+
+        last_cursor = repository.pullRequests.pageInfo.endCursor;
+        page_count = Math.ceil(repository.pullRequests.totalCount / PULLS_PER_PAGE);
+
+        return pulls_data;
     } catch (err) {
         console.error("    Error fetching pull request data: " + err);
         return [];
@@ -76,25 +200,26 @@ async function fetchPulls(page) {
 }
 
 function processPulls(pullsRaw) {
-    console.log("    Processing retrieved pull requests.");
     pullsRaw.forEach((item) => {
         // Compile basic information about a PR.
         let pr = {
             "id": item.id,
             "public_id": item.number,
-            "url": item.html_url,
-            "diff_url": item.diff_url,
-            "patch_url": item.patch_url,
+            "url": item.url,
+            "diff_url": `${item.url}.diff`,
+            "patch_url": `${item.url}.patch`,
 
             "title": item.title,
             "state": item.state,
-            "is_draft": item.draft,
+            "is_draft": item.isDraft,
             "authored_by": null,
-            "created_at": item.created_at,
-            "updated_at": item.updated_at,
+            "created_at": item.createdAt,
+            "updated_at": item.updatedAt,
 
-            "target_branch": item.base.ref,
+            "target_branch": item.baseRef.name,
 
+            "mergeable_state": item.mergeable,
+            "mergeable_reason": item.mergeStateStatus,
             "labels": [],
             "milestone": null,
             "links": [],
@@ -105,10 +230,10 @@ function processPulls(pullsRaw) {
 
         // Compose and link author information.
         const author = {
-            "id": item.user.id,
-            "user": item.user.login,
-            "avatar": item.user.avatar_url,
-            "url": item.user.html_url,
+            "id": item.author.id,
+            "user": item.author.login,
+            "avatar": item.author.avatarUrl,
+            "url": item.author.url,
             "pull_count": 0,
         };
         pr.authored_by = author.id;
@@ -124,12 +249,13 @@ function processPulls(pullsRaw) {
             pr.milestone = {
                 "id": item.milestone.id,
                 "title": item.milestone.title,
-                "url": item.milestone.html_url,
+                "url": item.milestone.url,
             };
         }
 
         // Add labels, if available.
-        item.labels.forEach((labelItem) => {
+        let labels = mapNodes(item.labels);
+        labels.forEach((labelItem) => {
             pr.labels.push({
                 "id": labelItem.id,
                 "name": labelItem.name,
@@ -145,22 +271,26 @@ function processPulls(pullsRaw) {
         // Look for linked issues in the body.
         pr.links = extractLinkedIssues(item.body);
 
+        // Extract requested reviewers.
+        let review_requests = mapNodes(item.reviewRequests).map(it => it.requestedReviewer);
+
         // Add teams, if available.
-        if (item.requested_teams.length > 0) {
-            item.requested_teams.forEach((teamItem) => {
+        let requested_teams = review_requests.filter(it => it["__typename"] === "Team");
+        if (requested_teams.length > 0) {
+            requested_teams.forEach((teamItem) => {
                 const team = {
                     "id": teamItem.id,
                     "name": teamItem.name,
-                    "avatar": `https://avatars.githubusercontent.com/t/${teamItem.id}?s=40&v=4`,
+                    "avatar": teamItem.avatarUrl,
                     "slug": teamItem.slug,
                     "full_name": teamItem.name,
                     "full_slug": teamItem.slug,
                     "pull_count": 0,
                 };
                 // Include parent data into full name and slug.
-                if (teamItem.parent) {
-                    team.full_name = `${teamItem.parent.name}/${team.name}`;
-                    team.full_slug = `${teamItem.parent.slug}/${team.slug}`;
+                if (teamItem.parentTeam) {
+                    team.full_name = `${teamItem.parentTeam.name}/${team.name}`;
+                    team.full_slug = `${teamItem.parentTeam.slug}/${team.slug}`;
                 }
 
                 // Store the team if it hasn't been stored before.
@@ -175,7 +305,7 @@ function processPulls(pullsRaw) {
         } else {
             // If there are no teams, use a fake "empty" team to track those PRs as well.
             const team = {
-                "id": -1,
+                "id": "",
                 "name": "No team assigned",
                 "avatar": "",
                 "slug": "_",
@@ -195,12 +325,13 @@ function processPulls(pullsRaw) {
         }
 
         // Add individual reviewers, if available
-        if (item.requested_reviewers.length > 0) {
-            item.requested_reviewers.forEach((reviewerItem) => {
+        let requested_reviewers = review_requests.filter(it => it["__typename"] === "User");
+        if (requested_reviewers.length > 0) {
+            requested_reviewers.forEach((reviewerItem) => {
                 const reviewer = {
                     "id": reviewerItem.id,
                     "name": reviewerItem.login,
-                    "avatar": reviewerItem.avatar_url,
+                    "avatar": reviewerItem.avatarUrl,
                     "slug": reviewerItem.login,
                     "pull_count": 0,
                 };
@@ -275,7 +406,7 @@ async function main() {
     await checkRates();
 
     console.log("[*] Fetching pull request data from GitHub.");
-    // Pages are starting with 1 (but 0 returns the same results).
+    // Pages are starting with 1 for better presentation.
     let page = 1;
     while (page <= page_count) {
         const pullsRaw = await fetchPulls(page);

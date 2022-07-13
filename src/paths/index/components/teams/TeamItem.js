@@ -79,7 +79,7 @@ export default class TeamItem extends LitElement {
         `;
     }
 
-    @property({ type: Number }) id = -1;
+    @property({ type: String }) id = "";
     @property({ type: String, reflect: true }) name = '';
     @property({ type: String, reflect: true }) avatar = '';
     @property({ type: Boolean, reflect: true }) active = false;

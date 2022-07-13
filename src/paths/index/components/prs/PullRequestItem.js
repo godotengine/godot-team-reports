@@ -11,6 +11,11 @@ export default class PullRequestItem extends LitElement {
             --draft-background-color: #9db3c0;
             --stats-background-color: #f9fafa;
 
+            --mergeable-unknown-color: #939fa3;
+            --mergeable-no-color: #de1600;
+            --mergeable-maybe-color: #c49504;
+            --mergeable-yes-color: #50b923;
+
             --stat-temp0-color: #000000;
             --stat-temp1-color: #383824;
             --stat-temp2-color: #645b2c;
@@ -22,12 +27,18 @@ export default class PullRequestItem extends LitElement {
             --stat-temp8-color: #b31605;
             --stat-temp9-color: #d3001c;
           }
+
           @media (prefers-color-scheme: dark) {
             :host {
               --pr-border-color: #0d1117;
               --draft-font-color: #e0c537;
               --draft-background-color: #1e313c;
               --stats-background-color: #0f1316;
+
+              --mergeable-unknown-color: #4e5659;
+              --mergeable-no-color: #d31a3b;
+              --mergeable-maybe-color: #cbad1c;
+              --mergeable-yes-color: #3bc213;
 
               --stat-temp0-color: #ffffff;
               --stat-temp1-color: #f0ed7e;
@@ -65,6 +76,7 @@ export default class PullRequestItem extends LitElement {
           }
           :host .pr-title-name {
             color: var(--g-font-color);
+            line-height: 24px;
             word-break: break-word;
           }
 
@@ -97,16 +109,37 @@ export default class PullRequestItem extends LitElement {
           }
           :host .pr-label-dot {
             border-radius: 4px;
+            box-shadow: rgb(0 0 0 / 28%) 0 0 3px 0;
             display: inline-block;
             width: 8px;
             height: 8px;
           }
           :host .pr-label-name {
-
+            padding-left: 3px;
           }
 
           :host .pr-milestone-value {
             font-weight: 700;
+          }
+
+          :host .pr-mergeable-value,
+          :host .pr-mergeable-reason {
+            border-bottom: 1px dashed var(--g-font-color);
+            cursor: help;
+            font-weight: 700;
+          }
+
+          :host .pr-mergeable-value--unknown {
+            color: var(--mergeable-unknown-color);
+          }
+          :host .pr-mergeable-value--no {
+            color: var(--mergeable-no-color);
+          }
+          :host .pr-mergeable-value--maybe {
+            color: var(--mergeable-maybe-color);
+          }
+          :host .pr-mergeable-value--yes {
+            color: var(--mergeable-yes-color);
           }
 
           :host .pr-time {
@@ -223,12 +256,14 @@ export default class PullRequestItem extends LitElement {
         `;
     }
 
-    @property({ type: Number }) id = -1;
+    @property({ type: String }) id = '';
     @property({ type: String }) title = '';
     @property({ type: String, reflect: true }) url = '';
     @property({ type: String, reflect: true }) diff_url = '';
     @property({ type: String, reflect: true }) patch_url = '';
     @property({ type: Boolean }) draft = false;
+    @property({ type: String }) mergeable_state = '';
+    @property({ type: String }) mergeable_reason = '';
     @property({ type: Array }) labels = [];
     @property({ type: String, reflect: true }) milestone = '';
     @property({ type: String, reflect: true }) branch = '';
@@ -238,6 +273,8 @@ export default class PullRequestItem extends LitElement {
     @property({ type: Object }) author = null;
     @property({ type: Array }) teams = [];
 
+
+
     getStatTemp(value, factor) {
         let temp = Math.floor(value / factor);
         if (temp > 9) {
@@ -245,6 +282,76 @@ export default class PullRequestItem extends LitElement {
         }
 
         return temp;
+    }
+
+    getMergeableStateText(value, reason) {
+        const descriptions = {
+            'UNKNOWN':     "unknown",
+
+            'CONFLICTING': "no",
+            'MERGEABLE':   "yes",
+        };
+
+        if (typeof descriptions[value] === "undefined") {
+            return value.toLowerCase;
+        }
+
+        if (value === 'MERGEABLE' && ![ 'CLEAN', 'HAS_HOOKS', 'UNSTABLE' ].includes(reason)) {
+            return "maybe";
+        }
+        return descriptions[value];
+    }
+
+    getMergeableStateDescription(value) {
+        const descriptions = {
+            'UNKNOWN':     "The mergeability of the pull request is not calculated.",
+
+            'CONFLICTING': "The pull request cannot be merged due to merge conflicts.",
+            'MERGEABLE':   "The pull request can be merged.",
+        };
+
+        if (typeof descriptions[value] === "undefined") {
+            return value;
+        }
+        return descriptions[value];
+    }
+
+    getMergeableReasonText(value) {
+        const descriptions = {
+            'UNKNOWN':   "unknown",
+
+            'BEHIND':    "outdated branch",
+            'BLOCKED':   "blocked",
+            'CLEAN':     "clean",
+            'DIRTY':     "merge conflicts",
+            'DRAFT':     "draft",
+            'HAS_HOOKS': "passing status w/ hooks",
+            'UNSTABLE':  "non-passing status",
+        };
+
+        if (typeof descriptions[value] === "undefined") {
+            return value;
+        }
+        return descriptions[value];
+    }
+
+    getMergeableReasonDescription(value) {
+        const descriptions = {
+            'UNKNOWN':   "The state cannot currently be determined.",
+
+            'BEHIND':    "The head ref is out of date.",
+            'BLOCKED':   "The merge is blocked. It likely requires an approving review.",
+            'CLEAN':     "Mergeable and passing commit status.",
+            'DIRTY':     "The merge commit cannot be cleanly created.",
+            'DRAFT':     "The merge is blocked due to the pull request being a draft.",
+            'HAS_HOOKS': "Mergeable with passing commit status and pre-receive hooks.",
+            'UNSTABLE':  "Mergeable with non-passing commit status.",
+        };
+
+        if (typeof descriptions[value] === "undefined") {
+            return value;
+        }
+        return descriptions[value];
     }
 
     render(){
@@ -266,6 +373,12 @@ export default class PullRequestItem extends LitElement {
             authorClassList.push("pr-author-value--hot");
         }
 
+        // Keep it to two columns, but if there isn't enough labels, keep it to one.
+        let labels_height = Math.ceil(this.labels.length / 2) * 20;
+        if (labels_height < 60) {
+            labels_height = 60;
+        }
+
         return html`
             <div class="pr-container">
                 <a
@@ -280,7 +393,7 @@ export default class PullRequestItem extends LitElement {
                 </a>
 
                 <div class="pr-meta">
-                    <div class="pr-labels">
+                    <div class="pr-labels" style="max-height:${labels_height}px">
                         ${this.labels.map((item) => {
                             return html`
                                 <span
@@ -319,6 +432,25 @@ export default class PullRequestItem extends LitElement {
                             <span class="pr-milestone-value">
                                 ${this.branch}
                             </span>
+                        </div>
+                        <div>
+                            <span>mergeable: </span>
+                            <span
+                                class="pr-mergeable-value pr-mergeable-value--${this.getMergeableStateText(this.mergeable_state, this.mergeable_reason)}"
+                                title="${this.getMergeableStateDescription(this.mergeable_state)}"
+                            >
+                                ${this.getMergeableStateText(this.mergeable_state, this.mergeable_reason)}
+                            </span>
+                            ${(this.mergeable_reason !== 'UNKNOWN') ? html`
+                                |
+                                <span
+                                        class="pr-mergeable-reason pr-mergeable-reason--${this.mergeable_reason.toLowerCase()}"
+                                        title="${this.getMergeableReasonDescription(this.mergeable_reason)}"
+                                >
+                                    ${this.getMergeableReasonText(this.mergeable_reason)}
+                                </span>
+                            ` : html``
+                            }
                         </div>
                     </div>
 
