@@ -171,10 +171,6 @@ async function fetchPulls(page) {
                             id
                             name
                             avatarUrl
-                            
-                            parentTeam {
-                              name
-                            }
                           }
                           
                           ... on User {
@@ -307,15 +303,8 @@ function processPulls(pullsRaw) {
                     "name": teamItem.name,
                     "avatar": teamItem.avatarUrl,
                     "slug": sluggifyTeam(teamItem.name),
-                    "full_name": teamItem.name,
-                    "full_slug": sluggifyTeam(teamItem.name),
                     "pull_count": 0,
                 };
-                // Include parent data into full name and slug.
-                if (teamItem.parentTeam) {
-                    team.full_name = `${teamItem.parentTeam.name}/${team.name}`;
-                    team.full_slug = `${sluggifyTeam(teamItem.parentTeam.name)}/${team.slug}`;
-                }
 
                 // Store the team if it hasn't been stored before.
                 if (typeof teams[team.id] == "undefined") {
@@ -333,8 +322,6 @@ function processPulls(pullsRaw) {
                 "name": "No team assigned",
                 "avatar": "",
                 "slug": "_",
-                "full_name": "No team assigned",
-                "full_slug": "_",
                 "pull_count": 0,
             };
 
