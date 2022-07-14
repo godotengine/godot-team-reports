@@ -36,6 +36,7 @@ jobs:
     - name: Fetch pull request data
       run: npm run compose-db
       env:
+        GRAPHQL_TOKEN: ${{ secrets.GRAPHQL_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Archive production artifacts

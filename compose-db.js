@@ -36,7 +36,9 @@ async function fetchGithub(query) {
     init.headers = {};
     init.headers["Content-Type"] = "application/json";
     init.headers["Accept"] = "application/vnd.github.merge-info-preview+json";
-    if (process.env.GITHUB_TOKEN) {
+    if (process.env.GRAPHQL_TOKEN) {
+        init.headers["Authorization"] = `token ${process.env.GRAPHQL_TOKEN}`;
+    } else if (process.env.GITHUB_TOKEN) {
         init.headers["Authorization"] = `token ${process.env.GITHUB_TOKEN}`;
     }
 
@@ -45,6 +47,14 @@ async function fetchGithub(query) {
     });
 
     return await fetch("https://api.github.com/graphql", init);
+}
+
+async function logResponse(data, name) {
+    try {
+        await fs.writeFile(`logs/${name}.json`, JSON.stringify(data, null, 4), {encoding: "utf-8"});
+    } catch (err) {
+        console.error("Error saving log file: " + err);
+    }
 }
 
 function handleErrors(data) {
@@ -88,6 +98,7 @@ async function checkRates() {
         }
 
         const data = await res.json();
+        logResponse(data, "_rate_limit");
         handleErrors(data);
 
         const rate_limit = data.data["rateLimit"];
@@ -201,6 +212,7 @@ async function fetchPulls(page) {
         }
 
         const data = await res.json();
+        logResponse(data, `data_page_${page}`);
         handleErrors(data);
 
         const rate_limit = data.data["rateLimit"];

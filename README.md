@@ -21,7 +21,7 @@ should work just fine).
 
 This project uses GitHub's GraphQL API. To fetch live data you need to generate
 a [personal OAuth token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
-You can supply your token to the scripts using the `GITHUB_TOKEN` environment
+You can supply your token to the scripts using the `GRAPHQL_TOKEN` environment
 variable. Note, that if you don't have member access to the organization, you
 may not be able to access all the information used when generating the database.
 
