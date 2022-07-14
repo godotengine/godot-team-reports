@@ -1,4 +1,5 @@
 const fs = require('fs').promises;
+const fsConstants = require('fs').constants;
 const path = require('path');
 const fetch = require('node-fetch');
 
@@ -51,6 +52,12 @@ async function fetchGithub(query) {
 
 async function logResponse(data, name) {
     try {
+        try {
+            await fs.access("logs", fsConstants.R_OK | fsConstants.W_OK);
+        } catch (err) {
+            await fs.mkdir("logs");
+        }
+
         await fs.writeFile(`logs/${name}.json`, JSON.stringify(data, null, 4), {encoding: "utf-8"});
     } catch (err) {
         console.error("Error saving log file: " + err);
