@@ -1,4 +1,11 @@
-const READING_SPEED = 200;
+const LOCAL_PREFERENCE_PREFIX = "_godot_up"
+const LOCAL_PREFERENCE_DEFAULTS = {
+  "sortBy"          : "age",
+  "sortDirection"   : "desc",
+  "showDraft"       : false,
+  "filterMilestone" : "4.0",
+  "filterMergeable" : "",
+};
 
 // API Interaction
 const ReportsAPI = {
@@ -82,6 +89,33 @@ const ReportsUtils = {
     const url = new URL(window.location);
     url.hash = hash;
     window.history.pushState({}, "", url);
+  },
+
+  getLocalPreferences() {
+    // Always fallback on defaults.
+    const localPreferences = { ...LOCAL_PREFERENCE_DEFAULTS };
+
+    for (let key in localPreferences) {
+      const storedValue = localStorage.getItem(`${LOCAL_PREFERENCE_PREFIX}_${key}`);
+      if (storedValue != null) {
+        localPreferences[key] = JSON.parse(storedValue);
+      }
+    }
+
+    return localPreferences;
+  },
+
+  setLocalPreferences(currentPreferences) {
+    for (let key in currentPreferences) {
+      // Only store known properties.
+      if (key in LOCAL_PREFERENCE_DEFAULTS) {
+        localStorage.setItem(`${LOCAL_PREFERENCE_PREFIX}_${key}`, JSON.stringify(currentPreferences[key]));
+      }
+    }
+  },
+
+  resetLocalPreferences() {
+    this.setLocalPreferences(LOCAL_PREFERENCE_DEFAULTS);
   },
 };
 

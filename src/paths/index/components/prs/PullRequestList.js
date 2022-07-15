@@ -10,19 +10,25 @@ export default class PullRequestList extends LitElement {
           :host {
             --pulls-background-color: #e5edf8;
             --pulls-toolbar-color: #9bbaed;
+            --pulls-toolbar-accent-color: #5a6f90;
 
             --sort-color: #5c7bb6;
             --sort-color-hover: #2862cd;
             --sort-color-active: #2054b5;
+
+            --reset-color: #4e4f53;
           }
           @media (prefers-color-scheme: dark) {
             :host {
               --pulls-background-color: #191d23;
               --pulls-toolbar-color: #222c3d;
-              
+              --pulls-toolbar-accent-color: #566783;
+
               --sort-color: #4970ad;
               --sort-color-hover: #5b87de;
               --sort-color-active: #6b9aea;
+
+              --reset-color: #7f8185;
             }
           }
 
@@ -59,13 +65,12 @@ export default class PullRequestList extends LitElement {
             display: flex;
             flex-direction: row;
             justify-content: space-between;
-            font-size: 15px;
             padding: 10px 14px;
             margin-bottom: 6px;
           }
 
           :host .pulls-count {
-
+            font-size: 15px;
           }
           :host .pulls-count strong {
             font-size: 18px;
@@ -117,17 +122,36 @@ export default class PullRequestList extends LitElement {
             text-decoration: underline;
           }
 
+          :host .pulls-reset {
+            display: flex;
+            justify-content: flex-end;
+            border-top: 1px solid var(--pulls-toolbar-accent-color);
+            margin-top: 8px;
+            padding-top: 2px;
+          }
+
+          :host .pulls-reset-action {
+            color: var(--reset-color);
+            cursor: pointer;
+          }
+
           @media only screen and (max-width: 900px) {
             :host .team-pulls {
               padding: 8px;
               max-width: 95%;
               margin: 0px auto;
             }
-            :host .pulls-count {
-              margin-bottom: 12px;
-            }
             :host .team-pulls-toolbar {
               flex-wrap: wrap;
+            }
+            :host .pulls-count {
+              font-size: 17px;
+              margin-bottom: 12px;
+              text-align: center;
+              width: 100%;
+            }
+            :host .pulls-count strong {
+              font-size: 20px;
             }
             :host .pulls-filters {
               width: 100%;
@@ -157,35 +181,77 @@ export default class PullRequestList extends LitElement {
     constructor() {
         super();
 
-        this._sortBy = "age";
-        this._sortDirection = "desc";
-        this._showDraft = false;
+        // Look in global.js for the actual defaults.
+        this._sortBy          = "age";
+        this._sortDirection   = "desc";
+        this._showDraft       = false;
         this._filterMilestone = "4.0";
         this._filterMergeable = "";
+
+        this.restoreUserPreferences();
+    }
+
+    restoreUserPreferences() {
+        const userPreferences = greports.util.getLocalPreferences();
+
+        this._sortBy          = userPreferences["sortBy"];
+        this._sortDirection   = userPreferences["sortDirection"];
+        this._showDraft       = userPreferences["showDraft"];
+        this._filterMilestone = userPreferences["filterMilestone"];
+        this._filterMergeable = userPreferences["filterMergeable"];
+    }
+
+    saveUserPreferences() {
+        const currentPreferences = {
+            "sortBy":          this._sortBy,
+            "sortDirection":   this._sortDirection,
+            "showDraft":       this._showDraft,
+            "filterMilestone": this._filterMilestone,
+            "filterMergeable": this._filterMergeable,
+        };
+
+        greports.util.setLocalPreferences(currentPreferences);
+    }
+
+    onResetPreferencesClicked() {
+        greports.util.resetLocalPreferences();
+
+        this.restoreUserPreferences();
+        this.requestUpdate();
     }
 
     onSortClicked(sortField, event) {
         this._sortBy = sortField;
+
+        this.saveUserPreferences();
         this.requestUpdate();
     }
 
     onSortDirectionClicked(sortDirection, event) {
         this._sortDirection = sortDirection;
+
+        this.saveUserPreferences();
         this.requestUpdate();
     }
 
     onDraftsChecked(event) {
         this._showDraft = event.target.checked;
+
+        this.saveUserPreferences();
         this.requestUpdate();
     }
 
     onMilestoneChanged(event) {
         this._filterMilestone = event.target.value;
+
+        this.saveUserPreferences();
         this.requestUpdate();
     }
 
     onMergeableChanged(event) {
         this._filterMergeable = event.target.value;
+
+        this.saveUserPreferences();
         this.requestUpdate();
     }
 
@@ -232,8 +298,11 @@ export default class PullRequestList extends LitElement {
             }
         });
 
-        if (!milestones.includes(this._filterMilestone)) {
-            this._filterMilestone = "";
+        // Values can be dynamically removed from the selector,
+        // but we don't really want to break the filters.
+        let milestone = "";
+        if (milestones.includes(this._filterMilestone)) {
+            milestone = this._filterMilestone;
         }
 
         let mergeables = [
@@ -244,7 +313,7 @@ export default class PullRequestList extends LitElement {
             if (!this._showDraft && item.is_draft) {
                 return false;
             }
-            if (this._filterMilestone !== "" && item.milestone && item.milestone.title !== this._filterMilestone) {
+            if (milestone !== "" && item.milestone && item.milestone.title !== milestone) {
                 return false;
             }
             if (this._filterMergeable !== "" && this.getMergeableFilterValue(item.mergeable_state, item.mergeable_reason) !== this._filterMergeable) {
@@ -275,6 +344,7 @@ export default class PullRequestList extends LitElement {
                                 <input
                                     id="show-drafts"
                                     type="checkbox"
+                                    .checked="${this._showDraft}"
                                     @click="${this.onDraftsChecked}"
                                 />
                             </span>
@@ -287,7 +357,7 @@ export default class PullRequestList extends LitElement {
                                         return html`
                                             <option
                                                 value="${item}"
-                                                .selected="${this._filterMilestone === item}"
+                                                .selected="${milestone === item}"
                                             >
                                                 ${item}
                                             </option>
@@ -295,7 +365,7 @@ export default class PullRequestList extends LitElement {
                                     })}
                                 </select>
                             </span>
-                            
+
                             <span class="pulls-filter">
                                 <span>mergeable: </span>
                                 <select @change="${this.onMergeableChanged}">
@@ -352,6 +422,15 @@ export default class PullRequestList extends LitElement {
                                     >
                                         desc
                                     </span>
+                                </span>
+                            </span>
+
+                            <span class="pulls-reset">
+                                <span
+                                    class="pulls-reset-action"
+                                    @click="${this.onResetPreferencesClicked}"
+                                >
+                                    reset filters
                                 </span>
                             </span>
                         </span>
