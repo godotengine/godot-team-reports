@@ -111,7 +111,7 @@ async function checkRates() {
         }
 
         const data = await res.json();
-        logResponse(data, "_rate_limit");
+        await logResponse(data, "_rate_limit");
         handleErrors(data);
 
         const rate_limit = data.data["rateLimit"];
@@ -227,7 +227,7 @@ async function fetchPulls(page) {
         }
 
         const data = await res.json();
-        logResponse(data, `data_page_${page}`);
+        await logResponse(data, `data_page_${page}`);
         handleErrors(data);
 
         const rate_limit = data.data["rateLimit"];
@@ -279,16 +279,22 @@ function processPulls(pullsRaw) {
 
             // Compose and link author information.
             const author = {
-                "id": item.author.id,
-                "user": item.author.login,
-                "avatar": item.author.avatarUrl,
-                "url": item.author.url,
+                "id": "",
+                "user": "ghost",
+                "avatar": "https://avatars.githubusercontent.com/u/10137?v=4",
+                "url": "https://github.com/ghost",
                 "pull_count": 0,
             };
+            if (item.author != null) {
+                author["id"] = item.author.id;
+                author["user"] = item.author.login;
+                author["avatar"] = item.author.avatarUrl;
+                author["url"] = item.author.url;
+            }
             pr.authored_by = author.id;
 
             // Store the author if they haven't been stored.
-            if (typeof authors[author.id] == "undefined") {
+            if (typeof authors[author.id] === "undefined") {
                 authors[author.id] = author;
             }
             authors[author.id].pull_count++;
@@ -355,7 +361,7 @@ function processPulls(pullsRaw) {
                 };
 
                 // Store the team if it hasn't been stored before.
-                if (typeof teams[team.id] == "undefined") {
+                if (typeof teams[team.id] === "undefined") {
                     teams[team.id] = team;
                 }
                 teams[team.id].pull_count++;

@@ -10,6 +10,7 @@ export default class PullRequestItem extends LitElement {
             --draft-font-color: #ffcc31;
             --draft-background-color: #9db3c0;
             --stats-background-color: #f9fafa;
+            --ghost-font-color: #738b99;
 
             --mergeable-unknown-color: #939fa3;
             --mergeable-no-color: #de1600;
@@ -34,6 +35,7 @@ export default class PullRequestItem extends LitElement {
               --draft-font-color: #e0c537;
               --draft-background-color: #1e313c;
               --stats-background-color: #0f1316;
+              --ghost-font-color: #495d68;
 
               --mergeable-unknown-color: #4e5659;
               --mergeable-no-color: #d31a3b;
@@ -160,6 +162,10 @@ export default class PullRequestItem extends LitElement {
           :host .pr-author-value--hot:before {
             content: "★";
             color: var(--draft-font-color);
+          }
+          :host .pr-author-value--ghost {
+            color: var(--ghost-font-color);
+            font-weight: 600;
           }
 
           :host .pr-links {
@@ -371,6 +377,9 @@ export default class PullRequestItem extends LitElement {
         const authorClassList = [ "pr-author-value" ];
         if (this.author.pull_count > 40) {
             authorClassList.push("pr-author-value--hot");
+        }
+        if (this.author.id === "") {
+            authorClassList.push("pr-author-value--ghost");
         }
 
         // Keep it to two columns, but if there isn't enough labels, keep it to one.
