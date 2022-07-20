@@ -12,6 +12,11 @@ const PULLS_PER_PAGE = 100;
 let page_count = 1;
 let last_cursor = "";
 
+const ExitCodes = {
+    "RequestFailure": 1,
+    "ParseFailure": 2,
+};
+
 const API_REPOSITORY_ID = `owner:"godotengine" name:"godot"`;
 const API_RATE_LIMIT = `
   rateLimit {
@@ -101,6 +106,7 @@ async function checkRates() {
         const res = await fetchGithub(query);
         if (res.status !== 200) {
             console.warn(`    Failed to get the API rate limits; server responded with code ${res.status}`);
+            process.exitCode = ExitCodes.RequestFailure;
             return;
         }
 
@@ -112,6 +118,7 @@ async function checkRates() {
         console.log(`    [$${rate_limit.cost}] Available API calls: ${rate_limit.remaining}/${rate_limit.limit}; resets at ${rate_limit.resetAt}`);
     } catch (err) {
         console.error("    Error checking the API rate limits: " + err);
+        process.exitCode = ExitCodes.RequestFailure;
         return;
     }
 }
@@ -215,6 +222,7 @@ async function fetchPulls(page) {
         const res = await fetchGithub(query);
         if (res.status !== 200) {
             console.warn(`    Failed to get pull requests for '${API_REPOSITORY_ID}'; server responded with code ${res.status}`);
+            process.exitCode = ExitCodes.RequestFailure;
             return [];
         }
 
@@ -234,94 +242,115 @@ async function fetchPulls(page) {
         return pulls_data;
     } catch (err) {
         console.error("    Error fetching pull request data: " + err);
+        process.exitCode = ExitCodes.RequestFailure;
         return [];
     }
 }
 
 function processPulls(pullsRaw) {
-    pullsRaw.forEach((item) => {
-        // Compile basic information about a PR.
-        let pr = {
-            "id": item.id,
-            "public_id": item.number,
-            "url": item.url,
-            "diff_url": `${item.url}.diff`,
-            "patch_url": `${item.url}.patch`,
+    try {
+        pullsRaw.forEach((item) => {
+            // Compile basic information about a PR.
+            let pr = {
+                "id": item.id,
+                "public_id": item.number,
+                "url": item.url,
+                "diff_url": `${item.url}.diff`,
+                "patch_url": `${item.url}.patch`,
 
-            "title": item.title,
-            "state": item.state,
-            "is_draft": item.isDraft,
-            "authored_by": null,
-            "created_at": item.createdAt,
-            "updated_at": item.updatedAt,
+                "title": item.title,
+                "state": item.state,
+                "is_draft": item.isDraft,
+                "authored_by": null,
+                "created_at": item.createdAt,
+                "updated_at": item.updatedAt,
 
-            "target_branch": item.baseRef.name,
+                "target_branch": item.baseRef.name,
 
-            "mergeable_state": item.mergeable,
-            "mergeable_reason": item.mergeStateStatus,
-            "labels": [],
-            "milestone": null,
-            "links": [],
+                "mergeable_state": item.mergeable,
+                "mergeable_reason": item.mergeStateStatus,
+                "labels": [],
+                "milestone": null,
+                "links": [],
 
-            "teams": [],
-            "reviewers": [],
-        };
-
-        // Compose and link author information.
-        const author = {
-            "id": item.author.id,
-            "user": item.author.login,
-            "avatar": item.author.avatarUrl,
-            "url": item.author.url,
-            "pull_count": 0,
-        };
-        pr.authored_by = author.id;
-
-        // Store the author if they haven't been stored.
-        if (typeof authors[author.id] == "undefined") {
-            authors[author.id] = author;
-        }
-        authors[author.id].pull_count++;
-
-        // Add the milestone, if available.
-        if (item.milestone) {
-            pr.milestone = {
-                "id": item.milestone.id,
-                "title": item.milestone.title,
-                "url": item.milestone.url,
+                "teams": [],
+                "reviewers": [],
             };
-        }
 
-        // Add labels, if available.
-        let labels = mapNodes(item.labels);
-        labels.forEach((labelItem) => {
-            pr.labels.push({
-                "id": labelItem.id,
-                "name": labelItem.name,
-                "color": "#" + labelItem.color
+            // Compose and link author information.
+            const author = {
+                "id": item.author.id,
+                "user": item.author.login,
+                "avatar": item.author.avatarUrl,
+                "url": item.author.url,
+                "pull_count": 0,
+            };
+            pr.authored_by = author.id;
+
+            // Store the author if they haven't been stored.
+            if (typeof authors[author.id] == "undefined") {
+                authors[author.id] = author;
+            }
+            authors[author.id].pull_count++;
+
+            // Add the milestone, if available.
+            if (item.milestone) {
+                pr.milestone = {
+                    "id": item.milestone.id,
+                    "title": item.milestone.title,
+                    "url": item.milestone.url,
+                };
+            }
+
+            // Add labels, if available.
+            let labels = mapNodes(item.labels);
+            labels.forEach((labelItem) => {
+                pr.labels.push({
+                    "id": labelItem.id,
+                    "name": labelItem.name,
+                    "color": "#" + labelItem.color
+                });
             });
-        });
-        pr.labels.sort((a, b) => {
-            if (a.name > b.name) return 1;
-            if (a.name < b.name) return -1;
-            return 0;
-        });
+            pr.labels.sort((a, b) => {
+                if (a.name > b.name) return 1;
+                if (a.name < b.name) return -1;
+                return 0;
+            });
 
-        // Look for linked issues in the body.
-        pr.links = extractLinkedIssues(item.body);
+            // Look for linked issues in the body.
+            pr.links = extractLinkedIssues(item.body);
 
-        // Extract requested reviewers.
-        let review_requests = mapNodes(item.reviewRequests).map(it => it.requestedReviewer);
+            // Extract requested reviewers.
+            let review_requests = mapNodes(item.reviewRequests).map(it => it.requestedReviewer);
 
-        // Add teams, if available.
-        let requested_teams = review_requests.filter(it => it && it["__typename"] === "Team");
-        if (requested_teams.length > 0) {
-            requested_teams.forEach((teamItem) => {
+            // Add teams, if available.
+            let requested_teams = review_requests.filter(it => it && it["__typename"] === "Team");
+            if (requested_teams.length > 0) {
+                requested_teams.forEach((teamItem) => {
+                    const team = {
+                        "id": teamItem.id,
+                        "name": teamItem.name,
+                        "avatar": teamItem.avatarUrl,
+                        "slug": sluggifyTeam(teamItem.name),
+                        "pull_count": 0,
+                    };
+
+                    // Store the team if it hasn't been stored before.
+                    if (typeof teams[team.id] == "undefined") {
+                        teams[team.id] = team;
+                    }
+                    teams[team.id].pull_count++;
+
+                    // Reference the team.
+                    pr.teams.push(team.id);
+                });
+            } else {
+                // If there are no teams, use a fake "empty" team to track those PRs as well.
                 const team = {
-                    "id": teamItem.id,
-                    "name": teamItem.name,
-                    "avatar": teamItem.avatarUrl,
-                    "slug": sluggifyTeam(teamItem.name),
+                    "id": "",
+                    "name": "No team assigned",
+                    "avatar": "",
+                    "slug": "_",
                     "pull_count": 0,
                 };
 
@@ -333,52 +362,37 @@ function processPulls(pullsRaw) {
 
                 // Reference the team.
                 pr.teams.push(team.id);
-            });
-        } else {
-            // If there are no teams, use a fake "empty" team to track those PRs as well.
-            const team = {
-                "id": "",
-                "name": "No team assigned",
-                "avatar": "",
-                "slug": "_",
-                "pull_count": 0,
-            };
-
-            // Store the team if it hasn't been stored before.
-            if (typeof teams[team.id] == "undefined") {
-                teams[team.id] = team;
             }
-            teams[team.id].pull_count++;
 
-            // Reference the team.
-            pr.teams.push(team.id);
-        }
+            // Add individual reviewers, if available
+            let requested_reviewers = review_requests.filter(it => it && it["__typename"] === "User");
+            if (requested_reviewers.length > 0) {
+                requested_reviewers.forEach((reviewerItem) => {
+                    const reviewer = {
+                        "id": reviewerItem.id,
+                        "name": reviewerItem.login,
+                        "avatar": reviewerItem.avatarUrl,
+                        "slug": reviewerItem.login,
+                        "pull_count": 0,
+                    };
 
-        // Add individual reviewers, if available
-        let requested_reviewers = review_requests.filter(it => it && it["__typename"] === "User");
-        if (requested_reviewers.length > 0) {
-            requested_reviewers.forEach((reviewerItem) => {
-                const reviewer = {
-                    "id": reviewerItem.id,
-                    "name": reviewerItem.login,
-                    "avatar": reviewerItem.avatarUrl,
-                    "slug": reviewerItem.login,
-                    "pull_count": 0,
-                };
+                    // Store the reviewer if it hasn't been stored before.
+                    if (typeof reviewers[reviewer.id] == "undefined") {
+                        reviewers[reviewer.id] = reviewer;
+                    }
+                    reviewers[reviewer.id].pull_count++;
 
-                // Store the reviewer if it hasn't been stored before.
-                if (typeof reviewers[reviewer.id] == "undefined") {
-                    reviewers[reviewer.id] = reviewer;
-                }
-                reviewers[reviewer.id].pull_count++;
+                    // Reference the reviewer.
+                    pr.reviewers.push(reviewer.id);
+                });
+            }
 
-                // Reference the reviewer.
-                pr.reviewers.push(reviewer.id);
-            });
-        }
-
-        pulls.push(pr);
-    });
+            pulls.push(pr);
+        });
+    } catch (err) {
+        console.error("    Error parsing pull request data: " + err);
+        process.exitCode = ExitCodes.ParseFailure;
+    }
 }
 
 function extractLinkedIssues(pullBody) {
@@ -429,11 +443,18 @@ function extractLinkedIssues(pullBody) {
     return links;
 }
 
+function checkForExit() {
+    if (process.exitCode > 0) {
+        process.exit();
+    }
+}
+
 async function main() {
     console.log("[*] Building local pull request database.");
 
     console.log("[*] Checking the rate limits before.")
     await checkRates();
+    checkForExit();
 
     console.log("[*] Fetching pull request data from GitHub.");
     // Pages are starting with 1 for better presentation.
@@ -441,11 +462,13 @@ async function main() {
     while (page <= page_count) {
         const pullsRaw = await fetchPulls(page);
         processPulls(pullsRaw);
+        checkForExit();
         page++;
     }
 
     console.log("[*] Checking the rate limits after.")
     await checkRates();
+    checkForExit();
 
     console.log("[*] Finalizing database.")
     const output = {
