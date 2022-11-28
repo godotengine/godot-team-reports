@@ -69,7 +69,15 @@ async function logResponse(data, name) {
     }
 }
 
-function handleErrors(data) {
+function handleResponseErrors(res) {
+    console.warn(`    Failed to get pull requests for '${API_REPOSITORY_ID}'; server responded with ${res.status} ${res.statusText}`);
+    const retry_header = res.headers.get("Retry-After");
+    if (retry_header) {
+        console.log(`    Retry after: ${retry_header}`);
+    }
+}
+
+function handleDataErrors(data) {
     if (typeof data["errors"] === "undefined") {
         return;
     }
@@ -105,14 +113,14 @@ async function checkRates() {
 
         const res = await fetchGithub(query);
         if (res.status !== 200) {
-            console.warn(`    Failed to get the API rate limits; server responded with code ${res.status}`);
+            handleResponseErrors(res);
             process.exitCode = ExitCodes.RequestFailure;
             return;
         }
 
         const data = await res.json();
         await logResponse(data, "_rate_limit");
-        handleErrors(data);
+        handleDataErrors(data);
 
         const rate_limit = data.data["rateLimit"];
         console.log(`    [$${rate_limit.cost}] Available API calls: ${rate_limit.remaining}/${rate_limit.limit}; resets at ${rate_limit.resetAt}`);
@@ -221,14 +229,14 @@ async function fetchPulls(page) {
         console.log(`    Requesting page ${page_text} of pull request data.`);
         const res = await fetchGithub(query);
         if (res.status !== 200) {
-            console.warn(`    Failed to get pull requests for '${API_REPOSITORY_ID}'; server responded with code ${res.status}`);
+            handleResponseErrors(res);
             process.exitCode = ExitCodes.RequestFailure;
             return [];
         }
 
         const data = await res.json();
         await logResponse(data, `data_page_${page}`);
-        handleErrors(data);
+        handleDataErrors(data);
 
         const rate_limit = data.data["rateLimit"];
         const repository = data.data["repository"];
@@ -455,6 +463,10 @@ function checkForExit() {
     }
 }
 
+async function delay(msec) {
+    return new Promise(resolve => setTimeout(resolve, msec));
+}
+
 async function main() {
     console.log("[*] Building local pull request database.");
 
@@ -470,6 +482,11 @@ async function main() {
         processPulls(pullsRaw);
         checkForExit();
         page++;
+
+        // Wait for about a second before proceeding to avoid hitting
+        // the secondary rate limit in GitHub API.
+        // See https://docs.github.com/en/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits.
+        await delay(1200);
     }
 
     console.log("[*] Checking the rate limits after.")
