@@ -19,12 +19,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     
-    - name: Install Node.js 14.x
-      uses: actions/setup-node@v2
+    - name: Install Node.js 16.x
+      uses: actions/setup-node@v3
       with:
-        node-version: 14.x
+        node-version: 16.x
         cache: 'npm'
 
     - name: Install dependencies
@@ -40,17 +40,19 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Archive production artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: web-static
         path: out
 
     - name: Deploy to GitHub Pages 🚀
-      uses: JamesIves/github-pages-deploy-action@releases/v3
+      uses: JamesIves/github-pages-deploy-action@v4
       with:
-        # The branch the action should deploy to.
-        BRANCH: gh-pages
-        # The folder the action should deploy.
-        FOLDER: out
+        branch: gh-pages
+        folder: out
+        # Configure the commit author.
+        git-config-name: 'Godot Organization'
+        git-config-email: '<>'
+        # Remove outdated files from the target directory.
         # Don't keep the history.
-        SINGLE_COMMIT: true
+        single-commit: true
