@@ -53,6 +53,5 @@ jobs:
         # Configure the commit author.
         git-config-name: 'Godot Organization'
         git-config-email: '<>'
-        # Remove outdated files from the target directory.
         # Don't keep the history.
         single-commit: true
