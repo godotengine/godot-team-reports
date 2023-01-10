@@ -134,10 +134,14 @@ async function checkRates() {
 async function fetchPulls(page) {
     try {
         let after_cursor = "";
+        let after_text = "initial";
         if (last_cursor !== "") {
             after_cursor = `after: "${last_cursor}"`;
+            after_text = after_cursor;
         }
 
+        // FIXME: mergeStateStatus for pullRequests is temporarily disabled as is seems to cause
+        // a lot of 500 errors.
         const query = `
         query {
           ${API_RATE_LIMIT}
@@ -157,7 +161,7 @@ async function fetchPulls(page) {
                   state
                   isDraft
                   mergeable
-                  mergeStateStatus
+                  
                   createdAt
                   updatedAt
                   
@@ -226,7 +230,8 @@ async function fetchPulls(page) {
         if (page_count > 1) {
             page_text = `${page}/${page_count}`;
         }
-        console.log(`    Requesting page ${page_text} of pull request data.`);
+        console.log(`    Requesting page ${page_text} of pull request data (${after_text}).`);
+
         const res = await fetchGithub(query);
         if (res.status !== 200) {
             handleResponseErrors(res);
@@ -276,7 +281,7 @@ function processPulls(pullsRaw) {
                 "target_branch": item.baseRef.name,
 
                 "mergeable_state": item.mergeable,
-                "mergeable_reason": item.mergeStateStatus,
+                "mergeable_reason": 'UNKNOWN', //item.mergeStateStatus,
                 "labels": [],
                 "milestone": null,
                 "links": [],
@@ -483,10 +488,9 @@ async function main() {
         checkForExit();
         page++;
 
-        // Wait for about a second before proceeding to avoid hitting
-        // the secondary rate limit in GitHub API.
+        // Wait for a bit before proceeding to avoid hitting the secondary rate limit in GitHub API.
         // See https://docs.github.com/en/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits.
-        await delay(1200);
+        await delay(1500);
     }
 
     console.log("[*] Checking the rate limits after.")
