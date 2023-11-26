@@ -10,7 +10,7 @@ Live website: https://godotengine.github.io/godot-team-reports/
 
 This project is written in JavaScript and is built using Node.JS. HTML and CSS are
 used for the presentation. The end result of the build process is completely static
-and can be server from any web server, no Node.JS required.
+and can be served from any web server, no Node.JS required.
 
 Front-end is designed in a reactive manner using industry standard Web Components
 (powered by `lit-element`). This provides native browser support, and results in a
