@@ -39,13 +39,24 @@ jobs:
         GRAPHQL_TOKEN: ${{ secrets.GRAPHQL_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Check that data.json was created
+      id: check_data
+      run: |
+        if [ -f "out/data.json" ]; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+
     - name: Archive production artifacts
+      if: steps.check_data.outputs.exists == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: web-static
         path: out
 
     - name: Deploy to GitHub Pages 🚀
+      if: steps.check_data.outputs.exists == 'true'
       uses: JamesIves/github-pages-deploy-action@v4
       with:
         branch: gh-pages
